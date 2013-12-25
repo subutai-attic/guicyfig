@@ -1,0 +1,1 @@
+GuicyFig includes software from Netflix and the Apache Software Foundation.
