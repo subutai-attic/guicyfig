@@ -70,7 +70,7 @@
         <version>2.16</version>
         <configuration>
           <argLine>
-            -Darchaius.fixedDelayPollingScheduler.initialDelayMills=1000
+            -Darchaius.fixedDelayPollingScheduler.initialDelayMills=500
             -Darchaius.fixedDelayPollingScheduler.delayMills=500
           </argLine>
           <systemPropertyVariables>
@@ -81,6 +81,14 @@
             <property>
               <name>archaius.fixedDelayPollingScheduler.delayMills</name>
               <value>500</value>
+            </property>
+            <property>
+              <name>archaius.deployment.environment</name>
+              <value>unit</value>
+            </property>
+            <property>
+              <name>archaius.deployment.applicationId</name>
+              <value>guicyfig</value>
             </property>
           </systemPropertyVariables>
         </configuration>

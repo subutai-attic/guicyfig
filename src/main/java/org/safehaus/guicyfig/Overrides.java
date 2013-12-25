@@ -28,10 +28,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @BindingAnnotation
 public @interface Overrides {
     public static enum Env {
-        ALL, TEST, CHOP, DEV, INTEG, ACCEPT, PROD
+        all, unit, test, chop, dev, integ, accept, prod
     }
 
     String name();
     Option[] options() default {};
-    Env[] contexts() default Env.ALL;
+    Env[] contexts() default Env.all;
 }

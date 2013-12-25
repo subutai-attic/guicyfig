@@ -41,4 +41,6 @@ public interface ServiceConfig extends GuicyFig {
 
     @Default( "false" )
     boolean isDebugEnabled();
+
+    boolean getAbc();
 }

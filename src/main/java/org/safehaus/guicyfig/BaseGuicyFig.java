@@ -82,17 +82,18 @@ class BaseGuicyFig implements GuicyFig {
 
         @Override
         public void run() {
-            if ( LOG.isDebugEnabled() ) {
-                StringBuilder sb = new StringBuilder();
-                sb.append( "Encountered property change for " ).append( option.key() )
-                        .append( " property: new value = " ).append( option.getNewPropertyValue() )
-                        .append( ", old value = " ).append( option.getCurrentValue() );
+            if ( ! option.getCurrentValue().equals( option.getNewPropertyValue() ) ) {
+                if ( LOG.isDebugEnabled() ) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append( option.key() ).append( " changed from " ).append( option.getCurrentValue() )
+                            .append( " to " ).append( option.getNewPropertyValue() );
 
-                LOG.debug( sb.toString() );
+                    LOG.debug( sb.toString() );
+                }
+
+                changeSupport.firePropertyChange( option.key(), option.getCurrentValue(), option.getNewPropertyValue() );
+                option.setCurrentValue( option.getNewPropertyValue() );
             }
-
-            changeSupport.firePropertyChange( option.key(), option.getCurrentValue(), option.getNewPropertyValue() );
-            option.setCurrentValue( option.getNewPropertyValue() );
         }
     }
 
@@ -155,6 +156,26 @@ class BaseGuicyFig implements GuicyFig {
     @Override
     public ConfigOption getOption( String key ) {
         return options.get( key );
+    }
+
+
+    @Override
+    public String getKeyByMethod( final String methodName ) {
+        if ( methodNameOptionMap.containsKey( methodName ) ) {
+            return methodNameOptionMap.get( methodName ).key();
+        }
+
+        return null;
+    }
+
+
+    @Override
+    public Object getValueByMethod( final String methodName ) {
+        if ( methodNameOptionMap.containsKey( methodName ) ) {
+            return methodNameOptionMap.get( methodName ).value();
+        }
+
+        return null;
     }
 
 
