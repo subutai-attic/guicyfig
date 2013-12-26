@@ -220,10 +220,10 @@ public class GuicyFigModule extends AbstractModule {
             properties.load( in );
         }
         catch ( NullPointerException e ) {
-            LOG.error( "No properties file {} found for configuration interface.", name, e );
+            LOG.warn( "No property defaults file {} found for {}.", name, configInterface.getSimpleName() );
         }
         catch ( IOException e ) {
-            LOG.error( "Problem reading properties file {} for configuration interface.", name, e );
+            LOG.warn( "No property defaults file {} found for {}.", name, configInterface.getSimpleName() );
         }
 
         return properties;
