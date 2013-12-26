@@ -37,10 +37,10 @@
   <scm>
     <url>http://stash.safehaus.org/projects/GFIG/repos/main/browse</url>
     <connection>
-      scm:git:ssh://git@stash.safehaus.org:7999/gfig/guicyfig.git
+      scm:git:http://stash.safehaus.org/scm/gfig/guicyfig.git
     </connection>
     <developerConnection>
-      scm:git:ssh://git@stash.safehaus.org:7999/gfig/guicyfig.git
+      scm:git:http://${safehaus.git.username}@stash.safehaus.org/scm/gfig/guicyfig.git
     </developerConnection>
     <tag>guicyfig-2.0</tag>
   </scm>
