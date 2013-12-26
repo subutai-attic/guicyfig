@@ -112,12 +112,12 @@ to implement support for Singleton configuration objects.
 
 # Project Resources
 
-*[Issues](https://jira.safehaus.org/browse/GFIG)
-*[Wiki](http://confluence.safehaus.org/display/GFIG/GuicyFig+Home)
-*[Code Review](http://crucible.safehaus.org/project/GFIG)
-*[Sonar](http://sonar.safehaus.org/dashboard/index/org.safehaus.guicyfig:guicyfig)
-*[Jenkins](http://jenkins.safehaus.org/job/GuicyFig/)
-*[Mailing List](mailto:guicyfig@safehaus.org)
+* [Issues](https://jira.safehaus.org/browse/GFIG)
+* [Wiki](http://confluence.safehaus.org/display/GFIG/GuicyFig+Home)
+* [Code Review](http://crucible.safehaus.org/project/GFIG)
+* [Sonar](http://sonar.safehaus.org/dashboard/index/org.safehaus.guicyfig:guicyfig)
+* [Jenkins](http://jenkins.safehaus.org/job/GuicyFig/)
+* [Mailing List](mailto:guicyfig@safehaus.org)
 
 # Special Thanks
 
