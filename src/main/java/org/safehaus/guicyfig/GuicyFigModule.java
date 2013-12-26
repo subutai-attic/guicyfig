@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.MembersInjector;
+import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.spi.TypeEncounter;
@@ -41,31 +42,41 @@ public class GuicyFigModule extends AbstractModule {
 
 
     @SuppressWarnings( "UnusedDeclaration" )
-    public GuicyFigModule( Class<? extends GuicyFig>[] classes ) {
+    public GuicyFigModule( Class<? extends GuicyFig>... classes ) {
         this.classes = classes;
     }
 
 
     protected void configure() {
         // add configuration logic here
-        LOG.info( "Configuring ..."  );
+        LOG.debug( "Configuring ..."  );
 
         for ( final Class clazz : classes ) {
+
             //noinspection unchecked
-            final BaseGuicyFig instance = getConcreteObject( clazz );
-            //noinspection unchecked
-            bind( clazz ).toInstance( instance );
+            bind( clazz ).toProvider( new Provider() {
+                @Override
+                public Object get() {
+                    //noinspection unchecked
+                    return getConcreteObject( clazz );
+                }
+            } );
+
             binder().bindListener( Matchers.any(), new TypeListener() {
                 @Override
                 public <I> void hear( final TypeLiteral<I> type, final TypeEncounter<I> encounter ) {
                     for ( final Field field : type.getRawType().getDeclaredFields() ) {
+
                         if ( field.getType() == clazz && field.isAnnotationPresent( Overrides.class ) ) {
-                            instance.setOverrides( field.getAnnotation( Overrides.class ) );
+
+                            //noinspection unchecked
+                            final BaseGuicyFig newInstance = getConcreteObject( clazz );
+                            newInstance.setOverrides( field.getAnnotation( Overrides.class ) );
                             encounter.register( new MembersInjector<I>() {
                                 @Override
                                 public void injectMembers( final I i ) {
                                     try {
-                                        field.set( i, instance );
+                                            field.set( i, newInstance );
                                     }
                                     catch ( IllegalAccessException e ) {
                                         throw new RuntimeException( e );
@@ -73,15 +84,17 @@ public class GuicyFigModule extends AbstractModule {
                                 }
                             } );
                         }
+
+
                     }
                 }
             } );
         }
-        LOG.info( "Done with configuration ..." );
+        LOG.debug( "Done with configuration ..." );
     }
 
 
-    static BaseGuicyFig getConcreteObject( Class<? extends GuicyFig> configInterface ) {
+    static BaseGuicyFig getConcreteObject( final Class<? extends GuicyFig> configInterface ) {
         final BaseGuicyFig config = buildBaseObject( configInterface );
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass( BaseGuicyFig.class );
@@ -107,8 +120,8 @@ public class GuicyFigModule extends AbstractModule {
                 }
 
                 if ( option == null ) {
-
-                    LOG.info( "Invoking super interface method: {}", method.getName() );
+                    LOG.debug( "Invoking method {} in declaring class {}",
+                            method.getName(), method.getDeclaringClass() );
 
                     if ( method.getName().equals( "getOptions" ) ) {
                         return config.getOptions();
@@ -116,6 +129,14 @@ public class GuicyFigModule extends AbstractModule {
 
                     if ( method.getName().equals( "getOption" ) ) {
                         return config.getOption( ( String ) objects[0] );
+                    }
+
+                    if ( method.getName().equals( "getKeyByMethod" ) ) {
+                        return config.getKeyByMethod( ( String ) objects[0] );
+                    }
+
+                    if ( method.getName().equals( "getValueByMethod" ) ) {
+                        return config.getValueByMethod( ( String ) objects[0] );
                     }
 
                     if ( method.getName().equals( "filterOptions" ) ) {
@@ -145,6 +166,18 @@ public class GuicyFigModule extends AbstractModule {
 
                     if ( method.getName().equals( "getOverrides" ) ) {
                         return config.getOverrides();
+                    }
+
+                    if ( method.getName().equals( "equals" ) ) {
+                        return config.equals( objects[0] );
+                    }
+
+                    if ( method.getName().equals( "toString" ) ) {
+                        return config.toString();
+                    }
+
+                    if ( method.getName().equals( "hashCode" ) ) {
+                        return config.hashCode();
                     }
 
                     return config.getClass().getMethod( method.getName() ).invoke( o, objects );
@@ -179,7 +212,8 @@ public class GuicyFigModule extends AbstractModule {
      */
     static Properties loadProperties( Class<? extends GuicyFig> configInterface ) {
         Properties properties = new Properties();
-        String name = "org/safehaus/guicyfig/" + configInterface.getSimpleName() + ".properties";
+        String packageName = configInterface.getPackage().getName();
+        String name = packageName.replace( '.', '/' ) + "/" + configInterface.getSimpleName() + ".properties";
         InputStream in = configInterface.getClassLoader().getResourceAsStream( name );
 
         try {

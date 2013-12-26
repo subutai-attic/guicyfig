@@ -60,6 +60,7 @@ class BaseGuicyFig implements GuicyFig {
         else {
             LOG.error( "Configuration methods with return type {} are not supported. Property {} will be ignored.",
                     method.getReturnType(), key );
+            return null;
         }
 
         //noinspection unchecked
@@ -82,17 +83,18 @@ class BaseGuicyFig implements GuicyFig {
 
         @Override
         public void run() {
-            if ( LOG.isDebugEnabled() ) {
-                StringBuilder sb = new StringBuilder();
-                sb.append( "Encountered property change for " ).append( option.key() )
-                        .append( " property: new value = " ).append( option.getNewPropertyValue() )
-                        .append( ", old value = " ).append( option.getCurrentValue() );
+            if ( ! option.getCurrentValue().equals( option.getNewPropertyValue() ) ) {
+                if ( LOG.isDebugEnabled() ) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append( option.key() ).append( " changed from " ).append( option.getCurrentValue() )
+                            .append( " to " ).append( option.getNewPropertyValue() );
 
-                LOG.debug( sb.toString() );
+                    LOG.debug( sb.toString() );
+                }
+
+                changeSupport.firePropertyChange( option.key(), option.getCurrentValue(), option.getNewPropertyValue() );
+                option.setCurrentValue( option.getNewPropertyValue() );
             }
-
-            changeSupport.firePropertyChange( option.key(), option.getCurrentValue(), option.getNewPropertyValue() );
-            option.setCurrentValue( option.getNewPropertyValue() );
         }
     }
 
@@ -104,16 +106,19 @@ class BaseGuicyFig implements GuicyFig {
 
     @Override
     public void setOverrides( Overrides overrides ) {
-        LOG.info( "Applying overrides: {}", overrides );
-
-        if ( this.overrides != null ) {
-            LOG.warn( "Overrides have already been set previously: {}", this.overrides );
+        if ( overrides == null ) {
+            this.overrides = null;
+            this.methodNameOptionMap.clear();
+            this.methodOptionMap.clear();
+            this.options.clear();
         }
 
-        for ( Option optAnnot : overrides.options() ) {
-            if ( methodNameOptionMap.containsKey( optAnnot.method() ) ) {
-                InternalOption option = methodNameOptionMap.get( optAnnot.method() );
-                option.setOverrideValue( optAnnot.override() );
+        LOG.info( "Applying overrides: {}", overrides );
+
+        for ( Option annotation : overrides.options() ) {
+            if ( methodNameOptionMap.containsKey( annotation.method() ) ) {
+                InternalOption option = methodNameOptionMap.get( annotation.method() );
+                option.setOverrideValue( annotation.override() );
 
                 if ( LOG.isInfoEnabled() ) {
                     StringBuilder sb = new StringBuilder();
@@ -155,6 +160,26 @@ class BaseGuicyFig implements GuicyFig {
     @Override
     public ConfigOption getOption( String key ) {
         return options.get( key );
+    }
+
+
+    @Override
+    public String getKeyByMethod( final String methodName ) {
+        if ( methodNameOptionMap.containsKey( methodName ) ) {
+            return methodNameOptionMap.get( methodName ).key();
+        }
+
+        return null;
+    }
+
+
+    @Override
+    public Object getValueByMethod( final String methodName ) {
+        if ( methodNameOptionMap.containsKey( methodName ) ) {
+            return methodNameOptionMap.get( methodName ).value();
+        }
+
+        return null;
     }
 
 

@@ -49,6 +49,24 @@ public interface GuicyFig {
 
 
     /**
+     * Gets the configuration option key (in properties file) using the method name.
+     *
+     * @param methodName the name of the configuration option method
+     * @return the key used for the configuration option
+     */
+    String getKeyByMethod( String methodName );
+
+
+    /**
+     * Gets the configuration option value using the method name.
+     *
+     * @param methodName the name of the configuration option method
+     * @return the value of the configuration option
+     */
+    Object getValueByMethod( String methodName );
+
+
+    /**
      * Filters out properties from a properties file retaining only those properties
      * that have options with a matching key. There are no side effects to the
      * {@link Properties} parameter supplied: a new Properties object is returned.
