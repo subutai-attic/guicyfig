@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.commons.configuration.AbstractConfiguration;
 
+import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.netflix.config.ConcurrentMapConfiguration;
 import com.netflix.config.ConfigurationManager;
@@ -52,6 +53,9 @@ public class ServiceConfigTest {
     @Inject
     ServiceConfig noOverrides;
 
+    @Inject
+    AnotherConfig anotherConfig;
+
 
     @BeforeClass
     public static void setupClass() throws IOException {
@@ -67,6 +71,14 @@ public class ServiceConfigTest {
             ConfigurationManager.getDeploymentContext().setDeploymentEnvironment( "unit" );
             ConfigurationManager.loadCascadedPropertiesFromResources( "guicyfig" );
         }
+    }
+
+
+    @Test
+    public void testObjectMethods() {
+        assertNotNull( noOverrides.toString() );
+        assertNotNull( noOverrides.hashCode() );
+        assertFalse( noOverrides.equals( withOverrides ) );
     }
 
 
@@ -148,6 +160,9 @@ public class ServiceConfigTest {
         assertEquals( true, withOverrides.isThrottlingEnabled() );
         assertEquals( true, withOverrides.isResetNeeded() );
         assertEquals( 500, withOverrides.getStartupTimeout() );
+        assertEquals( 500L, withOverrides.getValueByMethod( "getStartupTimeout" ) );
+        assertNull( withOverrides.getValueByMethod( "bogus" ) );
+
         assertEquals( 3.14f, withOverrides.getPi() );
         assertEquals( 6.0221413e+23, withOverrides.getAvagadrosNumber() );
         assertEquals( 25, withOverrides.getExecutionCount() );
@@ -190,11 +205,28 @@ public class ServiceConfigTest {
     }
 
 
+    @Test
+    public void useSingleClassArg() {
+        AnotherConfig anotherConfig = Guice.createInjector(
+                new GuicyFigModule( AnotherConfig.class ) ).getInstance( AnotherConfig.class );
+        assertNotNull( anotherConfig );
+        assertNotNull( anotherConfig.getFoobar() );
+        assertEquals( 10, anotherConfig.getFoobar() );
+    }
+
+
+    @Test
+    public void testNoDefaultsConfig() {
+        assertNotNull( anotherConfig );
+    }
+
+
     @SuppressWarnings( "UnusedDeclaration" )
     public static class ServiceModule extends JukitoModule {
         @Override
         protected void configureTest() {
-            install( new GuicyFigModule( ServiceConfig.class ) );
+            //noinspection unchecked
+            install( new GuicyFigModule( ServiceConfig.class, AnotherConfig.class ) );
         }
     }
 }

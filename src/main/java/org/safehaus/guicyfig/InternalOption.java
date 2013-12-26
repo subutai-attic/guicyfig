@@ -95,7 +95,7 @@ class InternalOption<T extends PropertyWrapper> implements ConfigOption {
             return Double.parseDouble( value );
         }
 
-        return value;
+        throw new IllegalArgumentException( "Don't know how to convert the property: " + property.toString() );
     }
 
 

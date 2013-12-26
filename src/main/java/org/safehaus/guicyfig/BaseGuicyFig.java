@@ -60,6 +60,7 @@ class BaseGuicyFig implements GuicyFig {
         else {
             LOG.error( "Configuration methods with return type {} are not supported. Property {} will be ignored.",
                     method.getReturnType(), key );
+            return null;
         }
 
         //noinspection unchecked
@@ -105,16 +106,19 @@ class BaseGuicyFig implements GuicyFig {
 
     @Override
     public void setOverrides( Overrides overrides ) {
-        LOG.info( "Applying overrides: {}", overrides );
-
-        if ( this.overrides != null ) {
-            LOG.warn( "Overrides have already been set previously: {}", this.overrides );
+        if ( overrides == null ) {
+            this.overrides = null;
+            this.methodNameOptionMap.clear();
+            this.methodOptionMap.clear();
+            this.options.clear();
         }
 
-        for ( Option optAnnot : overrides.options() ) {
-            if ( methodNameOptionMap.containsKey( optAnnot.method() ) ) {
-                InternalOption option = methodNameOptionMap.get( optAnnot.method() );
-                option.setOverrideValue( optAnnot.override() );
+        LOG.info( "Applying overrides: {}", overrides );
+
+        for ( Option annotation : overrides.options() ) {
+            if ( methodNameOptionMap.containsKey( annotation.method() ) ) {
+                InternalOption option = methodNameOptionMap.get( annotation.method() );
+                option.setOverrideValue( annotation.override() );
 
                 if ( LOG.isInfoEnabled() ) {
                     StringBuilder sb = new StringBuilder();

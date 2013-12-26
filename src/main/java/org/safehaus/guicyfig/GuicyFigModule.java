@@ -42,14 +42,14 @@ public class GuicyFigModule extends AbstractModule {
 
 
     @SuppressWarnings( "UnusedDeclaration" )
-    public GuicyFigModule( Class<? extends GuicyFig>[] classes ) {
+    public GuicyFigModule( Class<? extends GuicyFig>... classes ) {
         this.classes = classes;
     }
 
 
     protected void configure() {
         // add configuration logic here
-        LOG.info( "Configuring ..."  );
+        LOG.debug( "Configuring ..."  );
 
         for ( final Class clazz : classes ) {
 
@@ -57,6 +57,7 @@ public class GuicyFigModule extends AbstractModule {
             bind( clazz ).toProvider( new Provider() {
                 @Override
                 public Object get() {
+                    //noinspection unchecked
                     return getConcreteObject( clazz );
                 }
             } );
@@ -89,11 +90,11 @@ public class GuicyFigModule extends AbstractModule {
                 }
             } );
         }
-        LOG.info( "Done with configuration ..." );
+        LOG.debug( "Done with configuration ..." );
     }
 
 
-    static BaseGuicyFig getConcreteObject( Class<? extends GuicyFig> configInterface ) {
+    static BaseGuicyFig getConcreteObject( final Class<? extends GuicyFig> configInterface ) {
         final BaseGuicyFig config = buildBaseObject( configInterface );
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass( BaseGuicyFig.class );
@@ -119,8 +120,8 @@ public class GuicyFigModule extends AbstractModule {
                 }
 
                 if ( option == null ) {
-
-                    LOG.info( "Invoking super interface method: {}", method.getName() );
+                    LOG.debug( "Invoking method {} in declaring class {}",
+                            method.getName(), method.getDeclaringClass() );
 
                     if ( method.getName().equals( "getOptions" ) ) {
                         return config.getOptions();
@@ -211,7 +212,8 @@ public class GuicyFigModule extends AbstractModule {
      */
     static Properties loadProperties( Class<? extends GuicyFig> configInterface ) {
         Properties properties = new Properties();
-        String name = "org/safehaus/guicyfig/" + configInterface.getSimpleName() + ".properties";
+        String packageName = configInterface.getPackage().getName();
+        String name = packageName.replace( '.', '/' ) + "/" + configInterface.getSimpleName() + ".properties";
         InputStream in = configInterface.getClassLoader().getResourceAsStream( name );
 
         try {
