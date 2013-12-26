@@ -83,24 +83,48 @@ you inject in your config bean:
     BarConfig serviceConfig;
 ~~~~~~~
 
-**NOTE**: Another really neat feature of the overrides is that you can make it
+Another really neat feature of the overrides is that you can make it
 use a specific environment to trigger the Archaius deployment context under the
 hood to cascade your actual properties files for PROD, TEST, DEV, INTEG etc.
 
+Unlike adding a configuration at the top of the hierarchy in Apache 
+Commons Config land (also Archaius) the override feature is not bypassable
+and does not change the properties in the configuration heirarchy causing
+notifications of change. The overrides are locked into the object generated
+for your configuration bean and only applied if the environment matches 
+that stored in the deployment content.
+
+# Singleton Configurations
+
+Well this is the one loss. Because we use interfaces for configuration 
+specification right in the code and because Singleton's require non-abstract
+concrete implementations, there's no way to specify a Singleton using 
+the standard Juice Singleton annotation. 
+
+We could implement our own and make the GuicyFigModule reuse the same 
+generated object for your interface. However this gets a bit hairy because
+then multiple inject points can inject your configuration bean and there
+maybe overrides at each point. Which one do you use?
+
+So this would be a hack in the first place and as you see from above it 
+would create more problems than it would solve. In the end we decided not
+to implement support for Singleton configuration objects.
+
 # Project Resources
 
-[Alt text](/path/to/img.jpg)
-[Alt text](/path/to/img.jpg)
-[Alt text](/path/to/img.jpg)
-[Alt text](/path/to/img.jpg)
+*[Issues](https://jira.safehaus.org/browse/GFIG)
+*[Wiki](http://confluence.safehaus.org/display/GFIG/GuicyFig+Home)
+*[Code Review](http://crucible.safehaus.org/project/GFIG)
+*[Sonar](http://sonar.safehaus.org/dashboard/index/org.safehaus.guicyfig:guicyfig)
+*[Jenkins](http://jenkins.safehaus.org/job/GuicyFig/)
+*[Mailing List](mailto:guicyfig@safehaus.org)
 
 # Special Thanks
 
 * Todd for pushing to do something better. Awesomeness!
 * Netflix for Archaius which GuicyFig builds on
-* Apache for Apache Commons which GuicyFig builds on
-* And to Google for being cool enough to pump out a DI container like Guice
+* Apache for Apache Commons which Archaius builds on
+* And to Google for being cool enough to put out a DI container like Guice
 
 Rock on!
-
 Alex
