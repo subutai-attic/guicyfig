@@ -16,9 +16,7 @@ big projects.
 # How do I use it?
 
 Just create one or more "configuration" bean interfaces and have them extend the
-GuicyFig interface. Then install the GuicyFig guice module in your modules to
-get configuration beans as interfaces. No  more properties constants for 
-property keys and defaults: GuicyFig makes that way 2010! 
+GuicyFig interface like so:
 
 ~~~~~~~~
 package com.foo;
@@ -28,6 +26,10 @@ public BarConfig extends GuicyFig {
     String getHostname();
 }
 ~~~~~~~~
+
+Then install the GuicyFig guice module in your modules to
+get configuration beans as interfaces. No  more properties constants for 
+property keys and defaults: that's just way too 2010! 
 
 ~~~~~~~~
 package com.foo;
