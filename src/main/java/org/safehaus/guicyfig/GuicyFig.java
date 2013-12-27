@@ -102,4 +102,10 @@ public interface GuicyFig {
      * @return the overrides, if any, applied to this GuicyFig
      */
     Overrides getOverrides();
+
+
+    /**
+     * Gets the user defined configuration interface.
+     */
+    Class getFigInterface();
 }

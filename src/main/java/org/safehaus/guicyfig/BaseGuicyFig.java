@@ -30,6 +30,10 @@ class BaseGuicyFig implements GuicyFig {
     private DynamicPropertyFactory factory = DynamicPropertyFactory.getInstance();
     private Overrides overrides;
 
+    /** The user defined fig (configuration) interface that extends GuicyFig */
+    private Class figInterface;
+
+
 
     ConfigOption add( final String key, @Nullable final String defval, Method method ) {
         Preconditions.checkNotNull( key, "key cannot be null" );
@@ -101,6 +105,19 @@ class BaseGuicyFig implements GuicyFig {
 
     ConfigOption getOption( Method method ) {
         return methodOptionMap.get( method );
+    }
+
+
+    void setFigInterface( Class figInterface ) {
+        Preconditions.checkNotNull( figInterface, "The configuration interface cannot be null." );
+
+        this.figInterface = figInterface;
+    }
+
+
+    @Override
+    public Class getFigInterface() {
+        return figInterface;
     }
 
 
