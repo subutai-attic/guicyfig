@@ -105,6 +105,22 @@ public interface GuicyFig {
 
 
     /**
+     * Sets the {@link Bypass} annotations to be applied to this GuicyFig.
+     *
+     * @param bypass to apply to this GuicyFig,
+     */
+    void setBypass( Bypass bypass );
+
+
+    /**
+     * Sets the {@link Bypass} annotations, if applied to this GuicyFig.
+     *
+     * @return the bypass, if any, applied to this GuicyFig
+     */
+    Bypass getBypass();
+
+
+    /**
      * Gets the user defined configuration interface.
      *
      * @return the user defined configuration interface

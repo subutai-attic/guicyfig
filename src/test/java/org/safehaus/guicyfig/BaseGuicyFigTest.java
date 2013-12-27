@@ -26,7 +26,7 @@ public class BaseGuicyFigTest {
     }
 
 
-    @Test ( expected = NullPointerException.class )
+    @Test
     public void nullOverrides() {
         BaseGuicyFig baseGuicyFig = new BaseGuicyFig();
         baseGuicyFig.setOverrides( null );

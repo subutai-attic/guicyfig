@@ -15,26 +15,21 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * This annotation is used on configuration interfaces which are injected as
- * members and method/constructor parameters. It enables guicyfig dynamic
- * property setting overrides. This annotation is especially ideal for
+ * members and method/constructor parameters. This annotation does not actually
+ * change any configuration parameter but rather uses method interception to
+ * inject bypass values. Bypass values do not trigger change notifications to
+ * listeners as do overrides. This annotation is especially ideal for
  * annotating your TEST cases.
  *
- * Note that the array elements must align: meaning for example, the method
- * name properties specified in position 2 of the array must align with its
- * value in position 2 of the values array.
+ * Bypass options do just as is suggested, they bypass the entire hierarchy of
+ * configuration properties. Do not use a bypass if you would like notifications
+ * on property changes to work. For this reason this annotation should be used
+ * with care.
  */
 @Retention( RUNTIME )
 @Target( { METHOD, FIELD, PARAMETER, CONSTRUCTOR } )
 @BindingAnnotation
-public @interface Overrides {
-
-    /**
-     * The name of the new configuration to use.
-     *
-     * @return the name of the new configuration
-     */
-    String name();
-
+public @interface Bypass {
     /**
      * The options to setOverride.
      *

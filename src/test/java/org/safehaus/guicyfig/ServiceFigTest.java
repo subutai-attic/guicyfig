@@ -40,22 +40,19 @@ import static org.junit.Assert.assertNotEquals;
 @RunWith( JukitoRunner.class )
 public class ServiceFigTest {
     private static final Logger LOG = LoggerFactory.getLogger( ServiceFigTest.class );
+    private static final String HOST = "bullshlaka";
 
     @Inject
     @Overrides(
         name = "ServiceFigTest",
         options = {
-            @Option( method = "getHost", override = "bullshakala" )
+            @Option( method = "getHost", override = HOST )
         }
     )
     ServiceFig withOverrides;
 
     @Inject
     ServiceFig noOverrides;
-
-    @Inject
-    AnotherFig anotherFig;
-
 
 
     @BeforeClass
@@ -69,7 +66,7 @@ public class ServiceFigTest {
             LOG.debug( "Configuration seems to already been installed, not making changes." );
         }
         else {
-            ConfigurationManager.getDeploymentContext().setDeploymentEnvironment( "unit" );
+            ConfigurationManager.getDeploymentContext().setDeploymentEnvironment( "UNIT" );
             ConfigurationManager.loadCascadedPropertiesFromResources( "guicyfig" );
         }
     }
@@ -89,7 +86,13 @@ public class ServiceFigTest {
         assertNull( noOverrides.getOverrides() );
         assertNotNull( withOverrides.getOverrides() );
         assertNotNull( noOverrides );
-        assertEquals( "foobar", noOverrides.getHost() );
+
+        // Notice that the overrides are being applied even though this fig is not a
+        // singleton with no overrides defined on its injection point (member) - this
+        // is because the configuration is global, and overrides are applied in a
+        // layered hierarchy. Overrides layer properties globally, while bypass
+        // instructions completely bypass it locally on the injected object.
+        assertEquals( HOST, noOverrides.getHost() );
     }
 
 
@@ -141,7 +144,7 @@ public class ServiceFigTest {
         assertNotNull( withOverrides );
 
         // this will use the value from the ServiceFig.properties file but will be overridden: no annotations
-        assertEquals( "bullshakala", withOverrides.getHost() );
+        assertEquals( HOST, withOverrides.getHost() );
 
         // this will use the value from the ServiceFig.properties file: no annotations
         assertEquals( 8345, withOverrides.getPort() );
@@ -154,7 +157,7 @@ public class ServiceFigTest {
         // no Default annotation
         assertEquals( 500, withOverrides.getThreadWaitTime() );
 
-        // all these have interface annotations and no defaults settings in the
+        // ALL these have interface annotations and no defaults settings in the
         // ServiceFig.properties file
         assertEquals( 0.9f, withOverrides.getLoadThreshold() );
         assertEquals( 450.38918d, withOverrides.getLoadAverage() );
@@ -213,12 +216,6 @@ public class ServiceFigTest {
         assertNotNull( anotherFig );
         assertNotNull( anotherFig.getFoobar() );
         assertEquals( 10, anotherFig.getFoobar() );
-    }
-
-
-    @Test
-    public void testNoDefaultsConfig() {
-        assertNotNull( anotherFig );
     }
 
 

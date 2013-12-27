@@ -1,4 +1,8 @@
-package org.safehaus.guicyfig;
+package org.safehaus.guicyfig.bypass;
+
+
+import org.safehaus.guicyfig.FigSingleton;
+import org.safehaus.guicyfig.GuicyFig;
 
 
 /**
@@ -6,6 +10,5 @@ package org.safehaus.guicyfig;
  */
 @FigSingleton
 public interface SingletonFig extends GuicyFig {
-    @Key( "com.foo.bar" )
     int getFoobar();
 }
