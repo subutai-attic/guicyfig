@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -34,16 +35,18 @@ import net.sf.cglib.proxy.MethodProxy;
 public class GuicyFigModule extends AbstractModule {
     private static final Logger LOG = LoggerFactory.getLogger( GuicyFigModule.class );
     private final Class[] classes;
+    private final Map<Class<? extends GuicyFig>,BaseGuicyFig> singletons;
 
 
     public GuicyFigModule( Class<? extends GuicyFig> clazz ) {
         classes = new Class[] { clazz };
+        singletons = new HashMap<Class<? extends GuicyFig>, BaseGuicyFig>( 1 );
     }
 
 
-    @SuppressWarnings( "UnusedDeclaration" )
     public GuicyFigModule( Class<? extends GuicyFig>... classes ) {
         this.classes = classes;
+        singletons = new HashMap<Class<? extends GuicyFig>, BaseGuicyFig>( classes.length );
     }
 
 
@@ -55,22 +58,44 @@ public class GuicyFigModule extends AbstractModule {
 
             //noinspection unchecked
             bind( clazz ).toProvider( new Provider() {
+                @SuppressWarnings( "unchecked" )
                 @Override
                 public Object get() {
-                    //noinspection unchecked
-                    return getConcreteObject( clazz );
+                    if ( clazz.isAnnotationPresent( FigSingleton.class ) ) {
+                        BaseGuicyFig config;
+
+                        if ( ! singletons.containsKey( clazz ) ) {
+                            config = getConcreteObject( true, clazz );
+                            singletons.put( clazz, config );
+                        }
+                        else {
+                            config = singletons.get( clazz );
+                        }
+
+                        return config;
+                    }
+                    else {
+                        //noinspection unchecked
+                        return getConcreteObject( false, clazz );
+                    }
                 }
             } );
 
             binder().bindListener( Matchers.any(), new TypeListener() {
+                @SuppressWarnings( "unchecked" )
                 @Override
                 public <I> void hear( final TypeLiteral<I> type, final TypeEncounter<I> encounter ) {
                     for ( final Field field : type.getRawType().getDeclaredFields() ) {
 
-                        if ( field.getType() == clazz && field.isAnnotationPresent( Overrides.class ) ) {
+                        if ( field.getType() == clazz &&
+                                clazz.isAnnotationPresent( FigSingleton.class ) &&
+                                field.isAnnotationPresent( Overrides.class ) ) {
 
-                            //noinspection unchecked
-                            final BaseGuicyFig newInstance = getConcreteObject( clazz );
+                            if ( ! singletons.containsKey( clazz ) ) {
+                                singletons.put( clazz, getConcreteObject( true, clazz ) );
+                            }
+
+                            final BaseGuicyFig newInstance = singletons.get( clazz );
                             newInstance.setOverrides( field.getAnnotation( Overrides.class ) );
                             encounter.register( new MembersInjector<I>() {
                                 @Override
@@ -85,7 +110,21 @@ public class GuicyFigModule extends AbstractModule {
                             } );
                         }
 
-
+                        else if ( field.getType() == clazz && field.isAnnotationPresent( Overrides.class ) ) {
+                            final BaseGuicyFig newInstance = getConcreteObject( false, clazz );
+                            newInstance.setOverrides( field.getAnnotation( Overrides.class ) );
+                            encounter.register( new MembersInjector<I>() {
+                                @Override
+                                public void injectMembers( final I i ) {
+                                    try {
+                                            field.set( i, newInstance );
+                                    }
+                                    catch ( IllegalAccessException e ) {
+                                        throw new RuntimeException( e );
+                                    }
+                                }
+                            } );
+                        }
                     }
                 }
             } );
@@ -94,8 +133,10 @@ public class GuicyFigModule extends AbstractModule {
     }
 
 
-    static BaseGuicyFig getConcreteObject( final Class<? extends GuicyFig> configInterface ) {
+    static BaseGuicyFig getConcreteObject( boolean singleton, final Class<? extends GuicyFig> configInterface ) {
         final BaseGuicyFig config = buildBaseObject( configInterface );
+        config.setSingleton( singleton );
+
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass( BaseGuicyFig.class );
         enhancer.setInterfaces( new Class[] { configInterface } );
@@ -172,8 +213,12 @@ public class GuicyFigModule extends AbstractModule {
                         return config.getFigInterface();
                     }
 
+                    if ( method.getName().equals( "isSingleton" ) ) {
+                        return config.isSingleton();
+                    }
+
                     if ( method.getName().equals( "equals" ) ) {
-                        return config.equals( objects[0] );
+                        return o == objects[0];
                     }
 
                     if ( method.getName().equals( "toString" ) ) {
