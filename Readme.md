@@ -98,19 +98,16 @@ that stored in the deployment content.
 
 # Singleton Configurations
 
-Well this is the one loss. Because we use interfaces for configuration 
-specification right in the code and because Singleton's require non-abstract
-concrete implementations, there's no way to specify a Singleton using 
-the standard Juice Singleton annotation. 
+Guice does not allow the use of the @Singleton annotation with non-concrete 
+classes. For this reason we had to create a new @FigSingleton to enable the 
+same feature but for configuration interfaces.
 
-We could implement our own and make the GuicyFigModule reuse the same 
-generated object for your interface. However this gets a bit hairy because
-then multiple inject points can inject your configuration bean and there
-maybe overrides at each point. Which one do you use?
-
-So this would be a hack in the first place and as you see from above it 
-would create more problems than it would solve. In the end we decided not
-to implement support for Singleton configuration objects.
+Note that @Overrides and @Bypass behavior will be unpredictable if more than
+one of these annotations are applied at injection points. We just cannot predict
+which one will take; it all depends on the order of injection with the last
+injection point annotated having the final @Bypass. @Overrides can be more 
+tricky, leaving the configuration inconsistent. It would apply multiple config
+overrides.
 
 # Project Resources
 
