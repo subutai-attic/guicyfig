@@ -168,6 +168,10 @@ public class GuicyFigModule extends AbstractModule {
                         return config.getOverrides();
                     }
 
+                    if ( method.getName().equals( "getFigInterface" ) ) {
+                        return config.getFigInterface();
+                    }
+
                     if ( method.getName().equals( "equals" ) ) {
                         return config.equals( objects[0] );
                     }
@@ -233,6 +237,7 @@ public class GuicyFigModule extends AbstractModule {
     static BaseGuicyFig buildBaseObject( Class<? extends GuicyFig> configInterface ) {
         Properties defaults = loadProperties( configInterface );
         BaseGuicyFig config = new BaseGuicyFig();
+        config.setFigInterface( configInterface );
 
         Method[] methods = configInterface.getDeclaredMethods();
         for ( Method method : methods ) {

@@ -5,6 +5,11 @@ import java.lang.reflect.Method;
 
 import org.junit.Test;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
 
 
@@ -39,5 +44,15 @@ public class BaseGuicyFigTest {
                 baseGuicyFig.add( method.getName(), "bar", method );
             }
         }
+    }
+
+
+    @Test
+    public void getFigInterface() {
+        Injector injector = Guice.createInjector( new GuicyFigModule( AnotherConfig.class ) );
+        AnotherConfig config = injector.getInstance( AnotherConfig.class );
+        assertNotNull( config );
+
+        assertEquals( AnotherConfig.class, config.getFigInterface() );
     }
 }
