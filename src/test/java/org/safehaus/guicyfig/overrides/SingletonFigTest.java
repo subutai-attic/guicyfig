@@ -1,12 +1,14 @@
-package org.safehaus.guicyfig;
+package org.safehaus.guicyfig.overrides;
 
-
-import java.lang.reflect.AnnotatedElement;
 
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.safehaus.guicyfig.GuicyFigModule;
+import org.safehaus.guicyfig.Option;
+import org.safehaus.guicyfig.Overrides;
+import org.safehaus.guicyfig.bypass.SingletonFig;
 
 import com.google.inject.Inject;
 
@@ -23,14 +25,14 @@ import static junit.framework.TestCase.assertTrue;
 public class SingletonFigTest {
 
     @Inject
-    @Overrides( name = "junit-test", options = { @Option( method = "getFoobar", override = "234" ) } )
-    SingletonFig withOverrides;
+    @Overrides( name = "junit-TEST", options = { @Option( method = "getFoobar", override = "234" ) } )
+    public SingletonFig withOverrides;
 
     @Inject
-    SingletonFig secondFig;
+    public SingletonFig secondFig;
 
     @Inject
-    AnotherFig anotherFig;
+    public AnotherFig anotherFig;
 
 
     @Test
@@ -52,7 +54,8 @@ public class SingletonFigTest {
     public static class SingletonModule extends JukitoModule {
         @Override
         protected void configureTest() {
-            install( new GuicyFigModule( SingletonFig.class ) );
+            //noinspection unchecked
+            install( new GuicyFigModule( SingletonFig.class, AnotherFig.class ) );
         }
     }
 }

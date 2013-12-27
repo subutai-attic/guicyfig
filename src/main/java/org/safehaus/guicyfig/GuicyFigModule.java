@@ -29,7 +29,7 @@ import net.sf.cglib.proxy.MethodProxy;
 
 /**
  * Install this module, to automatically generate an implementation and inject
- * your GuicyFig extending configuration interfaces. See the test cases or the
+ * your GuicyFig extending configuration interfaces. See the TEST cases or the
  * wiki for an example.
  */
 public class GuicyFigModule extends AbstractModule {
@@ -125,9 +125,49 @@ public class GuicyFigModule extends AbstractModule {
                                 }
                             } );
                         }
+
+                        else if ( field.getType() == clazz &&
+                                clazz.isAnnotationPresent( FigSingleton.class ) &&
+                                field.isAnnotationPresent( Bypass.class ) ) {
+
+                            if ( ! singletons.containsKey( clazz ) ) {
+                                singletons.put( clazz, getConcreteObject( true, clazz ) );
+                            }
+
+                            final BaseGuicyFig newInstance = singletons.get( clazz );
+                            newInstance.setBypass( field.getAnnotation( Bypass.class ) );
+                            encounter.register( new MembersInjector<I>() {
+                                @Override
+                                public void injectMembers( final I i ) {
+                                    try {
+                                            field.set( i, newInstance );
+                                    }
+                                    catch ( IllegalAccessException e ) {
+                                        throw new RuntimeException( e );
+                                    }
+                                }
+                            } );
+                        }
+
+                        else if ( field.getType() == clazz && field.isAnnotationPresent( Bypass.class ) ) {
+                            final BaseGuicyFig newInstance = getConcreteObject( false, clazz );
+                            newInstance.setBypass( field.getAnnotation( Bypass.class ) );
+                            encounter.register( new MembersInjector<I>() {
+                                @Override
+                                public void injectMembers( final I i ) {
+                                    try {
+                                            field.set( i, newInstance );
+                                    }
+                                    catch ( IllegalAccessException e ) {
+                                        throw new RuntimeException( e );
+                                    }
+                                }
+                            } );
+                        }
                     }
                 }
             } );
+
         }
         LOG.debug( "Done with configuration ..." );
     }
@@ -209,6 +249,15 @@ public class GuicyFigModule extends AbstractModule {
                         return config.getOverrides();
                     }
 
+                    if ( method.getName().equals( "setBypass" ) ) {
+                        config.setBypass( ( Bypass ) objects[0] );
+                        return null;
+                    }
+
+                    if ( method.getName().equals( "getBypass" ) ) {
+                        return config.getBypass();
+                    }
+
                     if ( method.getName().equals( "getFigInterface" ) ) {
                         return config.getFigInterface();
                     }
@@ -235,8 +284,8 @@ public class GuicyFigModule extends AbstractModule {
                 // OK this stuff is redirected to the dynamic properties
                 LOG.debug( "Invoking method {} to get property with key {}", method.getName(), option.key() );
 
-                if ( option.isOverridden() ) {
-                    return option.getOverrideValue();
+                if ( option.isBypassed() ) {
+                    return option.getBypass();
                 }
                 else {
                     return option.value();

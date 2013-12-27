@@ -9,9 +9,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 
 /**
- * An annotation used to override or set the dynamic property default. If used
+ * An annotation used to setOverride or set the dynamic property default. If used
  * in conjunction with a defaults properties file, this annotation's value will
- * override the default value set in the defaults property file.
+ * setOverride the default value set in the defaults property file.
  *
  * The defaults properties file uses the convention of being present in the
  * package of the configuration interface with its class name. So for example

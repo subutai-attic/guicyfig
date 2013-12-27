@@ -4,7 +4,9 @@ package org.safehaus.guicyfig;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 
@@ -14,6 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.netflix.config.ConcurrentCompositeConfiguration;
+import com.netflix.config.ConcurrentMapConfiguration;
+import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicPropertyFactory;
 import com.netflix.config.PropertyWrapper;
 
@@ -33,7 +38,7 @@ class BaseGuicyFig implements GuicyFig {
 
     /** The user defined fig (configuration) interface that extends GuicyFig */
     private Class figInterface;
-
+    private Bypass bypass;
 
 
     ConfigOption add( final String key, @Nullable final String defval, Method method ) {
@@ -41,7 +46,7 @@ class BaseGuicyFig implements GuicyFig {
         Preconditions.checkNotNull( method, "method cannot be null for option with key {}", key );
 
         InternalOption option;
-        PropertyWrapper property = null;
+        PropertyWrapper property;
 
         if ( method.getReturnType().equals( int.class ) || method.getReturnType().equals( Integer.class ) ) {
             property = factory.getIntProperty( key, ( defval == null ) ? 0 : Integer.parseInt( defval ) );
@@ -134,26 +139,109 @@ class BaseGuicyFig implements GuicyFig {
 
 
     @Override
-    public void setOverrides( Overrides overrides ) {
-        if ( overrides == null ) {
-            this.overrides = null;
-            this.methodNameOptionMap.clear();
-            this.methodOptionMap.clear();
-            this.options.clear();
-        }
+    public Bypass getBypass() {
+        return bypass;
+    }
 
-        LOG.info( "Applying overrides: {}", overrides );
 
-        for ( Option annotation : overrides.options() ) {
+    private void applyBypass( Bypass bypass ) {
+        Preconditions.checkNotNull( bypass );
+        for ( Option annotation : bypass.options() ) {
             if ( methodNameOptionMap.containsKey( annotation.method() ) ) {
                 InternalOption option = methodNameOptionMap.get( annotation.method() );
-                option.setOverrideValue( annotation.override() );
+                option.setBypass( annotation.override() );
 
                 if ( LOG.isInfoEnabled() ) {
                     StringBuilder sb = new StringBuilder();
                     sb.append( "ConfigOption " ).append( option.key() ).append( " had value " )
-                      .append( option.value() ).append( " overridden by " ).append( option.getOverrideValue() );
+                      .append( option.value() ).append( " bypassed by " ).append( option.getBypass() );
                     LOG.info( sb.toString() );
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void setBypass( Bypass bypass ) {
+        // A null bypass will clear out all the bypass settings in effect
+        if ( bypass == null ) {
+            for ( Option annotation : this.bypass.options() ) {
+                InternalOption option = methodNameOptionMap.get( annotation.method() );
+                option.setBypass( null );
+            }
+            this.bypass = null;
+            return;
+        }
+
+        HashSet<Env> environs = new HashSet<Env>( bypass.environments().length );
+        Collections.addAll( environs, bypass.environments() );
+        Env ctxEnv = Env.getEnvironment();
+
+        // if the ALL environment is present then we just add all bypasses
+        if ( environs.contains( Env.ALL ) || ctxEnv == Env.ALL ) {
+            applyBypass( bypass );
+            return;
+        }
+
+        /*
+         * If we got here we need to make sure that the environment from the
+         * Archaius DeploymentContext (on the configuration) if present maps
+         * to one of the environments where the bypass is valid.
+         */
+
+        if ( environs.contains( ctxEnv ) ) {
+            applyBypass( bypass );
+        }
+
+        this.bypass = bypass;
+    }
+
+
+    @Override
+    public void setOverrides( Overrides overrides ) {
+        if ( overrides == null ) {
+            this.overrides = null;
+            return;
+        }
+
+        String ctxEnv;
+
+        // first let's check if we should apply the overrides base on the environment
+        if ( ConfigurationManager.getDeploymentContext() == null ) {
+            ctxEnv = Env.ALL.toString().toLowerCase();
+        }
+        else if ( ConfigurationManager.getDeploymentContext().getDeploymentEnvironment() == null ) {
+            ctxEnv = Env.ALL.toString().toLowerCase();
+        }
+        else {
+            ctxEnv = ConfigurationManager.getDeploymentContext().getDeploymentEnvironment().toLowerCase();
+        }
+
+        for ( Env env : overrides.environments() ) {
+            if ( env.toString().toLowerCase().equals( ctxEnv ) || env == Env.ALL ) {
+                LOG.info( "Applying overrides: {}", overrides );
+
+                if ( ConfigurationManager.getConfigInstance() instanceof ConcurrentCompositeConfiguration ) {
+                    ConcurrentCompositeConfiguration ccc = ( ConcurrentCompositeConfiguration )
+                            ConfigurationManager.getConfigInstance();
+
+                    ConcurrentMapConfiguration mapConfiguration = new ConcurrentMapConfiguration();
+
+                    for ( Option annotation : overrides.options() ) {
+                        InternalOption option = methodNameOptionMap.get( annotation.method() );
+                        option.setOverrideMapConfiguration( mapConfiguration );
+                        option.setOverride( annotation.override() );
+
+                        if ( LOG.isInfoEnabled() ) {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append( "ConfigOption " ).append( option.key() ).append( " had value " )
+                              .append( option.value() ).append( " overridden by " ).append( annotation.override());
+                            LOG.info( sb.toString() );
+                        }
+                    }
+
+                    ccc.addConfigurationAtFront( mapConfiguration, overrides.name() );
                 }
             }
         }
