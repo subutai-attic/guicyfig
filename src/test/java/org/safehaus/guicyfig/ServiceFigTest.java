@@ -38,23 +38,24 @@ import static org.junit.Assert.assertNotEquals;
  * Tests the GuicyFigModule.
  */
 @RunWith( JukitoRunner.class )
-public class ServiceConfigTest {
-    private static final Logger LOG = LoggerFactory.getLogger( ServiceConfigTest.class );
+public class ServiceFigTest {
+    private static final Logger LOG = LoggerFactory.getLogger( ServiceFigTest.class );
 
     @Inject
     @Overrides(
-        name = "ServiceConfigTest",
+        name = "ServiceFigTest",
         options = {
             @Option( method = "getHost", override = "bullshakala" )
         }
     )
-    ServiceConfig withOverrides;
+    ServiceFig withOverrides;
 
     @Inject
-    ServiceConfig noOverrides;
+    ServiceFig noOverrides;
 
     @Inject
-    AnotherConfig anotherConfig;
+    AnotherFig anotherFig;
+
 
 
     @BeforeClass
@@ -139,14 +140,14 @@ public class ServiceConfigTest {
         LOG.debug( "Check for valid withOverrides object." );
         assertNotNull( withOverrides );
 
-        // this will use the value from the ServiceConfig.properties file but will be overridden: no annotations
+        // this will use the value from the ServiceFig.properties file but will be overridden: no annotations
         assertEquals( "bullshakala", withOverrides.getHost() );
 
-        // this will use the value from the ServiceConfig.properties file: no annotations
+        // this will use the value from the ServiceFig.properties file: no annotations
         assertEquals( 8345, withOverrides.getPort() );
 
         // this will use the value from the interface annotation overriding
-        // the default value of 5 in the ServiceConfig.properties file
+        // the default value of 5 in the ServiceFig.properties file
         assertEquals( 7, withOverrides.getMaxConnections() );
 
         // this was annotated with a non-conventional key (thread.wait.time) and
@@ -154,7 +155,7 @@ public class ServiceConfigTest {
         assertEquals( 500, withOverrides.getThreadWaitTime() );
 
         // all these have interface annotations and no defaults settings in the
-        // ServiceConfig.properties file
+        // ServiceFig.properties file
         assertEquals( 0.9f, withOverrides.getLoadThreshold() );
         assertEquals( 450.38918d, withOverrides.getLoadAverage() );
         assertEquals( true, withOverrides.isThrottlingEnabled() );
@@ -179,19 +180,19 @@ public class ServiceConfigTest {
 
         Properties starting = new Properties();
         starting.setProperty( "foo.bar.foe", "I will be filtered out" );
-        starting.setProperty( "org.safehaus.guicyfig.ServiceConfig.getPort", "9999" );
+        starting.setProperty( "org.safehaus.guicyfig.ServiceFig.getPort", "9999" );
         Properties filtered = withOverrides.filterOptions( starting );
         assertFalse( filtered.containsKey( "foo.bar.foe" ) );
-        assertTrue( filtered.containsKey( "org.safehaus.guicyfig.ServiceConfig.getPort" ) );
+        assertTrue( filtered.containsKey( "org.safehaus.guicyfig.ServiceFig.getPort" ) );
 
 
         Map<String,Object> startingMap = new HashMap<String, Object>();
         startingMap.put( "foo.bar", "I will be filtered out" );
-        startingMap.put( "org.safehaus.guicyfig.ServiceConfig.getMaxConnections", "7" );
+        startingMap.put( "org.safehaus.guicyfig.ServiceFig.getMaxConnections", "7" );
         Map<String,Object> filteredMap = withOverrides.filterOptions( startingMap );
         assertFalse( filteredMap.containsKey( "foo.bar" ) );
-        assertTrue( filteredMap.containsKey( "org.safehaus.guicyfig.ServiceConfig.getMaxConnections" ) );
-        assertEquals( filteredMap.get( "org.safehaus.guicyfig.ServiceConfig.getMaxConnections" ), "7" );
+        assertTrue( filteredMap.containsKey( "org.safehaus.guicyfig.ServiceFig.getMaxConnections" ) );
+        assertEquals( filteredMap.get( "org.safehaus.guicyfig.ServiceFig.getMaxConnections" ), "7" );
 
 
         PropertyChangeListener listener = new PropertyChangeListener() {
@@ -207,17 +208,17 @@ public class ServiceConfigTest {
 
     @Test
     public void useSingleClassArg() {
-        AnotherConfig anotherConfig = Guice.createInjector(
-                new GuicyFigModule( AnotherConfig.class ) ).getInstance( AnotherConfig.class );
-        assertNotNull( anotherConfig );
-        assertNotNull( anotherConfig.getFoobar() );
-        assertEquals( 10, anotherConfig.getFoobar() );
+        AnotherFig anotherFig = Guice.createInjector(
+                new GuicyFigModule( AnotherFig.class ) ).getInstance( AnotherFig.class );
+        assertNotNull( anotherFig );
+        assertNotNull( anotherFig.getFoobar() );
+        assertEquals( 10, anotherFig.getFoobar() );
     }
 
 
     @Test
     public void testNoDefaultsConfig() {
-        assertNotNull( anotherConfig );
+        assertNotNull( anotherFig );
     }
 
 
@@ -226,7 +227,7 @@ public class ServiceConfigTest {
         @Override
         protected void configureTest() {
             //noinspection unchecked
-            install( new GuicyFigModule( ServiceConfig.class, AnotherConfig.class ) );
+            install( new GuicyFigModule( ServiceFig.class, AnotherFig.class ) );
         }
     }
 }

@@ -49,10 +49,10 @@ public class BaseGuicyFigTest {
 
     @Test
     public void getFigInterface() {
-        Injector injector = Guice.createInjector( new GuicyFigModule( AnotherConfig.class ) );
-        AnotherConfig config = injector.getInstance( AnotherConfig.class );
+        Injector injector = Guice.createInjector( new GuicyFigModule( AnotherFig.class ) );
+        AnotherFig config = injector.getInstance( AnotherFig.class );
         assertNotNull( config );
 
-        assertEquals( AnotherConfig.class, config.getFigInterface() );
+        assertEquals( AnotherFig.class, config.getFigInterface() );
     }
 }

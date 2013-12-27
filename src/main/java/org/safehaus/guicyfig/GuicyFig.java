@@ -106,6 +106,14 @@ public interface GuicyFig {
 
     /**
      * Gets the user defined configuration interface.
+     *
+     * @return the user defined configuration interface
      */
     Class getFigInterface();
+
+
+    /**
+     * Checks whether or not this configuration interface is a Singleton.
+     */
+    boolean isSingleton();
 }

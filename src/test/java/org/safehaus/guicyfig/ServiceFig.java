@@ -4,7 +4,7 @@ package org.safehaus.guicyfig;
 /**
  * Example configurable object Interface.
  */
-public interface ServiceConfig extends GuicyFig {
+public interface ServiceFig extends GuicyFig {
     String getHost();
 
     int getPort();

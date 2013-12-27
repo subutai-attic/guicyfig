@@ -29,6 +29,7 @@ class BaseGuicyFig implements GuicyFig {
     private final Map<String,InternalOption> methodNameOptionMap = new HashMap<String, InternalOption>();
     private DynamicPropertyFactory factory = DynamicPropertyFactory.getInstance();
     private Overrides overrides;
+    private boolean singleton;
 
     /** The user defined fig (configuration) interface that extends GuicyFig */
     private Class figInterface;
@@ -118,6 +119,17 @@ class BaseGuicyFig implements GuicyFig {
     @Override
     public Class getFigInterface() {
         return figInterface;
+    }
+
+
+    void setSingleton( boolean singleton ) {
+        this.singleton = singleton;
+    }
+
+
+    @Override
+    public boolean isSingleton() {
+        return singleton;
     }
 
 
