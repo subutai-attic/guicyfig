@@ -13,6 +13,7 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.AbstractModule;
 import com.google.inject.MembersInjector;
 import com.google.inject.Provider;
@@ -20,6 +21,8 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
+import com.netflix.config.ConcurrentCompositeConfiguration;
+import com.netflix.config.ConfigurationManager;
 
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Enhancer;
@@ -64,7 +67,7 @@ public class GuicyFigModule extends AbstractModule {
                     if ( clazz.isAnnotationPresent( FigSingleton.class ) ) {
                         BaseGuicyFig config;
 
-                        if ( ! singletons.containsKey( clazz ) ) {
+                        if ( !singletons.containsKey( clazz ) ) {
                             config = getConcreteObject( true, clazz );
                             singletons.put( clazz, config );
                         }

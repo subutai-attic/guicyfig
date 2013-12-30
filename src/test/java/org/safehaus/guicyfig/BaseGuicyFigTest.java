@@ -16,7 +16,7 @@ import static junit.framework.TestCase.assertNull;
 /**
  * Tests BaseGuicyFig.
  */
-public class BaseGuicyFigTest {
+public class BaseGuicyFigTest extends AbstractTest {
 
     @Test
     public void badMethodNames() {
@@ -49,10 +49,10 @@ public class BaseGuicyFigTest {
 
     @Test
     public void getFigInterface() {
-        Injector injector = Guice.createInjector( new GuicyFigModule( AnotherFig.class ) );
-        AnotherFig config = injector.getInstance( AnotherFig.class );
+        Injector injector = Guice.createInjector( new GuicyFigModule( FooFig.class ) );
+        FooFig config = injector.getInstance( FooFig.class );
         assertNotNull( config );
 
-        assertEquals( AnotherFig.class, config.getFigInterface() );
+        assertEquals( FooFig.class, config.getFigInterface() );
     }
 }

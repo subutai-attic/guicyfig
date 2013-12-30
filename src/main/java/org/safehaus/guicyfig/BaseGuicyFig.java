@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.netflix.config.ConcurrentCompositeConfiguration;
-import com.netflix.config.ConcurrentMapConfiguration;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicPropertyFactory;
 import com.netflix.config.PropertyWrapper;
@@ -201,47 +200,44 @@ class BaseGuicyFig implements GuicyFig {
     @Override
     public void setOverrides( Overrides overrides ) {
         if ( overrides == null ) {
+            if ( ConfigurationManager.getConfigInstance() instanceof ConcurrentCompositeConfiguration ) {
+                ConcurrentCompositeConfiguration ccc = ( ConcurrentCompositeConfiguration )
+                        ConfigurationManager.getConfigInstance();
+
+                if( this.overrides != null ) {
+                    for ( Option option : this.overrides.options() ) {
+                        ccc.clearOverrideProperty( getKeyByMethod( option.method() ) );
+                    }
+                }
+            }
+
             this.overrides = null;
             return;
         }
 
-        String ctxEnv;
+        Env ctxEnv = Env.getEnvironment();
+        HashSet<Env> environs = new HashSet<Env>( overrides.environments().length );
+        Collections.addAll( environs, overrides.environments() );
 
-        // first let's check if we should apply the overrides base on the environment
-        if ( ConfigurationManager.getDeploymentContext() == null ) {
-            ctxEnv = Env.ALL.toString().toLowerCase();
-        }
-        else if ( ConfigurationManager.getDeploymentContext().getDeploymentEnvironment() == null ) {
-            ctxEnv = Env.ALL.toString().toLowerCase();
-        }
-        else {
-            ctxEnv = ConfigurationManager.getDeploymentContext().getDeploymentEnvironment().toLowerCase();
+        if ( ctxEnv != Env.ALL && ! environs.contains( Env.ALL ) && ! environs.contains( ctxEnv ) ) {
+            return;
         }
 
-        for ( Env env : overrides.environments() ) {
-            if ( env.toString().toLowerCase().equals( ctxEnv ) || env == Env.ALL ) {
-                LOG.info( "Applying overrides: {}", overrides );
 
-                if ( ConfigurationManager.getConfigInstance() instanceof ConcurrentCompositeConfiguration ) {
-                    ConcurrentCompositeConfiguration ccc = ( ConcurrentCompositeConfiguration )
-                            ConfigurationManager.getConfigInstance();
+        if ( ConfigurationManager.getConfigInstance() instanceof ConcurrentCompositeConfiguration ) {
+            ConcurrentCompositeConfiguration ccc = ( ConcurrentCompositeConfiguration )
+                    ConfigurationManager.getConfigInstance();
 
-                    ConcurrentMapConfiguration mapConfiguration = new ConcurrentMapConfiguration();
+            for ( Option annotation : overrides.options() ) {
+                InternalOption option = methodNameOptionMap.get( annotation.method() );
+                option.setCurrentValue( annotation.override() );
+                ccc.setOverrideProperty( option.key(), annotation.override() );
 
-                    for ( Option annotation : overrides.options() ) {
-                        InternalOption option = methodNameOptionMap.get( annotation.method() );
-                        option.setOverrideMapConfiguration( mapConfiguration );
-                        option.setOverride( annotation.override() );
-
-                        if ( LOG.isInfoEnabled() ) {
-                            StringBuilder sb = new StringBuilder();
-                            sb.append( "ConfigOption " ).append( option.key() ).append( " had value " )
-                              .append( option.value() ).append( " overridden by " ).append( annotation.override());
-                            LOG.info( sb.toString() );
-                        }
-                    }
-
-                    ccc.addConfigurationAtFront( mapConfiguration, overrides.name() );
+                if ( LOG.isInfoEnabled() ) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append( "ConfigOption " ).append( option.key() ).append( " had value " )
+                      .append( option.value() ).append( " overridden by " ).append( annotation.override());
+                    LOG.info( sb.toString() );
                 }
             }
         }

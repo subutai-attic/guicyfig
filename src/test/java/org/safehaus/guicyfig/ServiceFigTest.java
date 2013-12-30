@@ -12,7 +12,6 @@ import java.util.Properties;
 
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -22,15 +21,23 @@ import org.apache.commons.configuration.AbstractConfiguration;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.netflix.config.ConcurrentCompositeConfiguration;
 import com.netflix.config.ConcurrentMapConfiguration;
 import com.netflix.config.ConfigurationManager;
+import com.netflix.config.DynamicBooleanProperty;
+import com.netflix.config.DynamicDoubleProperty;
+import com.netflix.config.DynamicFloatProperty;
+import com.netflix.config.DynamicIntProperty;
+import com.netflix.config.DynamicLongProperty;
+import com.netflix.config.DynamicPropertyFactory;
+import com.netflix.config.DynamicStringProperty;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
+import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertNotEquals;
 
 
@@ -38,16 +45,14 @@ import static org.junit.Assert.assertNotEquals;
  * Tests the GuicyFigModule.
  */
 @RunWith( JukitoRunner.class )
-public class ServiceFigTest {
+public class ServiceFigTest extends AbstractTest {
     private static final Logger LOG = LoggerFactory.getLogger( ServiceFigTest.class );
-    private static final String HOST = "bullshlaka";
+    private static final String HOSTNAME = "bullshlaka";
+
 
     @Inject
-    @Overrides(
-        name = "ServiceFigTest",
-        options = {
-            @Option( method = "getHost", override = HOST )
-        }
+    @Overrides( name = "for-testing",
+        options = { @Option( method = "getHost", override = HOSTNAME ) }
     )
     ServiceFig withOverrides;
 
@@ -55,20 +60,126 @@ public class ServiceFigTest {
     ServiceFig noOverrides;
 
 
-    @BeforeClass
-    public static void setupClass() throws IOException {
-        System.setProperty( "archaius.fixedDelayPollingScheduler.initialDelayMills", "500" );
-        System.setProperty( "archaius.dynamicPropertyFactory.registerConfigWithJMX", "true" );
-        System.setProperty( "archaius.fixedDelayPollingScheduler.delayMills", "500" );
+    private static final String BASE = "org.safehaus.guicyfig.ServiceFig.";
+    private static final String PORT = BASE + "getPort";
+    private static final String WAIT_TIME = BASE + "getThreadWaitTime";
+    private static final String RESET_NEEDED = BASE + "isResetNeeded";
+    private static final String EXECUTION_COUNT = BASE + "getExecutionCount";
+    private static final String DEBUG_ENABLED = BASE + "isDebugEnabled";
+    private static final String LOAD_THRESHOLD = BASE + "getLoadThreshold";
+    private static final String LOAD_AVERAGE = BASE + "getLoadAverage";
+    private static final String THROTTLING_ENABLED = BASE + "isThrottlingEnabled";
+    private static final String MAX_CONNECTIONS = BASE + "getMaxConnections";
+    private static final String STARTUP_TIMEOUT = BASE + "getStartupTimeout";
+    private static final String PI = BASE + "getPi";
+    private static final String AVAGADROS_NO = BASE + "getAvagadrosNumber";
+    private static final String THREAD_WAIT = "thread.wait.time";
+    private static final String HOST = BASE + "getHost";
 
-        // ConfigurationManager.loadCascadedPropertiesFromResources( "guicyfig" );
-        if ( ConfigurationManager.isConfigurationInstalled() ) {
-            LOG.debug( "Configuration seems to already been installed, not making changes." );
-        }
-        else {
-            ConfigurationManager.getDeploymentContext().setDeploymentEnvironment( "UNIT" );
-            ConfigurationManager.loadCascadedPropertiesFromResources( "guicyfig" );
-        }
+
+    @Test
+    public void testAppValues() throws IOException {
+        assertProperty( PORT, "8345" );
+    }
+
+
+    @Test
+    public void testUndefined() throws IOException {
+        assertUndefined( BASE + "bogus" );
+        assertUndefined( WAIT_TIME );
+        assertUndefined( RESET_NEEDED );
+        assertUndefined( EXECUTION_COUNT );
+        assertUndefined( DEBUG_ENABLED );
+    }
+
+
+    @Test
+    public void testUnitCascadedValues() throws IOException {
+        // these three were changed from 0.9000, 450.38918, true respectively to
+        assertProperty( LOAD_THRESHOLD, "2.81" );
+        assertProperty( LOAD_AVERAGE, "30.05" );
+        assertProperty( THROTTLING_ENABLED, "false" );
+
+        // these have only been defined in the UNIT scope
+        assertProperty( MAX_CONNECTIONS, "7" );
+        assertProperty( THREAD_WAIT, "500" );
+        assertProperty( STARTUP_TIMEOUT, "800" );
+        assertProperty( PI, "3.14159f" );
+        assertProperty( AVAGADROS_NO, "6.0221413e+23" );
+    }
+
+
+    @Test
+    public void testDynamicProperties() throws IOException, InterruptedException {
+        DynamicPropertyFactory factory = DynamicPropertyFactory.getInstance();
+
+        DynamicIntProperty port = factory.getIntProperty( PORT, 8080 );
+        assertEquals( 8345, port.get() );
+
+        DynamicFloatProperty loadThreshold = factory.getFloatProperty( LOAD_THRESHOLD, 0.1f );
+        assertEquals( 2.81f, loadThreshold.get() );
+
+        DynamicFloatProperty loadAverage = factory.getFloatProperty( LOAD_AVERAGE, 0.1f );
+        assertEquals( 30.05f, loadAverage.get() );
+
+        DynamicBooleanProperty throttling = factory.getBooleanProperty( THROTTLING_ENABLED, true );
+        assertEquals( false, throttling.get() );
+
+        DynamicIntProperty connections = factory.getIntProperty( MAX_CONNECTIONS, 33 );
+        assertEquals( 7, connections.get() );
+
+        DynamicLongProperty threadWait = factory.getLongProperty( THREAD_WAIT, 52 );
+        assertEquals( 500, threadWait.get() );
+
+        DynamicLongProperty startupTimeout = factory.getLongProperty( STARTUP_TIMEOUT, 1215 );
+        assertEquals( 800, startupTimeout.get() );
+
+        DynamicFloatProperty pi = factory.getFloatProperty( PI, 3.14f );
+        assertEquals( 3.14159f, pi.get() );
+
+        DynamicDoubleProperty avagadro = factory.getDoubleProperty( AVAGADROS_NO, 0 );
+        assertEquals( 6.0221413e+23, avagadro.get() );
+
+        DynamicStringProperty host = factory.getStringProperty( HOST, "localhost" );
+        assertEquals( "bullshlaka", host.get() );
+
+        /*
+         * Now we inject a new configuration into the hierarchy and see what happens
+         */
+
+        ConcurrentMapConfiguration mapConfiguration = new ConcurrentMapConfiguration();
+        mapConfiguration.setProperty( LOAD_AVERAGE, "40.32" );
+        mapConfiguration.setProperty( HOST, "maxwell" );
+        mapConfiguration.setProperty( DEBUG_ENABLED, true );
+        getConfiguration().addConfigurationAtFront( mapConfiguration, "test" );
+
+        assertProperty( DEBUG_ENABLED, true );
+        assertEquals( 8345, port.get() );
+        assertEquals( 2.81f, loadThreshold.get() );
+        assertEquals( 40.32f, loadAverage.get() );
+        assertEquals( false, throttling.get() );
+        assertEquals( 7, connections.get() );
+        assertEquals( 500, threadWait.get() );
+        assertEquals( 800, startupTimeout.get() );
+        assertEquals( 3.14159f, pi.get() );
+        assertEquals( 6.0221413e+23, avagadro.get() );
+        assertEquals( "bullshlaka", host.get() );
+
+        mapConfiguration.clear();
+        getConfiguration().removeConfiguration( "test" );
+        getConfiguration().removeConfiguration( mapConfiguration );
+
+        assertUndefined( DEBUG_ENABLED );
+        assertEquals( 8345, port.get() );
+        assertEquals( 2.81f, loadThreshold.get() );
+        assertEquals( 30.05f, loadAverage.get() );
+        assertEquals( false, throttling.get() );
+        assertEquals( 7, connections.get() );
+        assertEquals( 500, threadWait.get() );
+        assertEquals( 800, startupTimeout.get() );
+        assertEquals( 3.14159f, pi.get() );
+        assertEquals( 6.0221413e+23, avagadro.get() );
+        assertEquals( HOSTNAME, host.get() );
     }
 
 
@@ -88,11 +199,11 @@ public class ServiceFigTest {
         assertNotNull( noOverrides );
 
         // Notice that the overrides are being applied even though this fig is not a
-        // singleton with no overrides defined on its injection point (member) - this
+        // singleton and has no overrides defined on its injection point (member) - this
         // is because the configuration is global, and overrides are applied in a
         // layered hierarchy. Overrides layer properties globally, while bypass
         // instructions completely bypass it locally on the injected object.
-        assertEquals( HOST, noOverrides.getHost() );
+        assertEquals( HOSTNAME, noOverrides.getHost() );
     }
 
 
@@ -110,7 +221,11 @@ public class ServiceFigTest {
         AbstractConfiguration config = new ConcurrentMapConfiguration();
         config.addProperty( withOverrides.getKeyByMethod( "getExecutionCount" ), "12" );
         config.addProperty( withOverrides.getKeyByMethod( "getAbc" ), "true" );
-        ConfigurationManager.install( config );
+
+        ConcurrentCompositeConfiguration cmc = ( ConcurrentCompositeConfiguration )
+                ConfigurationManager.getConfigInstance();
+        cmc.addConfigurationAtFront( config, "testNotifications" );
+
         Thread.sleep( 500 );
         assertFalse( events.isEmpty() );
         assertEquals( 2, events.size() );
@@ -135,16 +250,18 @@ public class ServiceFigTest {
         config.clearProperty( withOverrides.getKeyByMethod( "getAbc" ) );
 
         assertEquals( 3, events.size() );
+        cmc.removeConfiguration( "testNotifications" );
     }
 
 
     @Test
-    public void testMeHard() {
-        LOG.debug( "Check for valid withOverrides object." );
+    public void testMeHard() throws Exception {
+        testDynamicProperties();
+
         assertNotNull( withOverrides );
 
         // this will use the value from the ServiceFig.properties file but will be overridden: no annotations
-        assertEquals( HOST, withOverrides.getHost() );
+        assertEquals( HOSTNAME, withOverrides.getHost() );
 
         // this will use the value from the ServiceFig.properties file: no annotations
         assertEquals( 8345, withOverrides.getPort() );
@@ -154,20 +271,20 @@ public class ServiceFigTest {
         assertEquals( 7, withOverrides.getMaxConnections() );
 
         // this was annotated with a non-conventional key (thread.wait.time) and
-        // no Default annotation
+        // no Default annotation, the ServiceFig.properties contains the default
         assertEquals( 500, withOverrides.getThreadWaitTime() );
 
         // ALL these have interface annotations and no defaults settings in the
         // ServiceFig.properties file
-        assertEquals( 0.9f, withOverrides.getLoadThreshold() );
-        assertEquals( 450.38918d, withOverrides.getLoadAverage() );
-        assertEquals( true, withOverrides.isThrottlingEnabled() );
+        assertEquals( 2.81f, withOverrides.getLoadThreshold() );
+        assertEquals( 30.05, withOverrides.getLoadAverage() );
+        assertEquals( false, withOverrides.isThrottlingEnabled() );
         assertEquals( true, withOverrides.isResetNeeded() );
-        assertEquals( 500, withOverrides.getStartupTimeout() );
-        assertEquals( 500L, withOverrides.getValueByMethod( "getStartupTimeout" ) );
+        assertEquals( 800L, withOverrides.getStartupTimeout() );
+        assertEquals( 800L, withOverrides.getValueByMethod( "getStartupTimeout" ) );
         assertNull( withOverrides.getValueByMethod( "bogus" ) );
 
-        assertEquals( 3.14f, withOverrides.getPi() );
+        assertEquals( 3.14159f, withOverrides.getPi() );
         assertEquals( 6.0221413e+23, withOverrides.getAvagadrosNumber() );
         assertEquals( 25, withOverrides.getExecutionCount() );
         assertEquals( false, withOverrides.isDebugEnabled() );
@@ -211,11 +328,11 @@ public class ServiceFigTest {
 
     @Test
     public void useSingleClassArg() {
-        AnotherFig anotherFig = Guice.createInjector(
-                new GuicyFigModule( AnotherFig.class ) ).getInstance( AnotherFig.class );
-        assertNotNull( anotherFig );
-        assertNotNull( anotherFig.getFoobar() );
-        assertEquals( 10, anotherFig.getFoobar() );
+        FooFig fooFig = Guice.createInjector(
+                new GuicyFigModule( FooFig.class ) ).getInstance( FooFig.class );
+        assertNotNull( fooFig );
+        assertNotNull( fooFig.getFoobar() );
+        assertEquals( 0, fooFig.getFoobar() );
     }
 
 
@@ -224,7 +341,7 @@ public class ServiceFigTest {
         @Override
         protected void configureTest() {
             //noinspection unchecked
-            install( new GuicyFigModule( ServiceFig.class, AnotherFig.class ) );
+            install( new GuicyFigModule( ServiceFig.class, FooFig.class ) );
         }
     }
 }

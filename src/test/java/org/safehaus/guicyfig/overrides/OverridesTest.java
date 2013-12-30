@@ -5,14 +5,14 @@ import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.safehaus.guicyfig.AbstractTest;
 import org.safehaus.guicyfig.GuicyFigModule;
 import org.safehaus.guicyfig.Option;
 import org.safehaus.guicyfig.Overrides;
-import org.safehaus.guicyfig.bypass.SingletonFig;
 
 import com.google.inject.Inject;
 
-import static junit.framework.Assert.assertEquals;
+import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
@@ -22,17 +22,17 @@ import static junit.framework.TestCase.assertTrue;
  * Tests that singleton are adhered to.
  */
 @RunWith( JukitoRunner.class )
-public class SingletonFigTest {
+public class OverridesTest extends AbstractTest {
 
     @Inject
-    @Overrides( name = "junit-TEST", options = { @Option( method = "getFoobar", override = "234" ) } )
-    public SingletonFig withOverrides;
+    @Overrides( name = "junit-tests", options = { @Option( method = "getAbc", override = "234" ) } )
+    public OverridesSingletonFig withOverrides;
 
     @Inject
-    public SingletonFig secondFig;
+    public OverridesSingletonFig secondFig;
 
     @Inject
-    public AnotherFig anotherFig;
+    public OverridesFig overridesFig;
 
 
     @Test
@@ -41,12 +41,13 @@ public class SingletonFigTest {
         assertNotNull( secondFig );
         assertNotNull( withOverrides.getOverrides() );
         assertNotNull( secondFig.getOverrides() );
-        assertEquals( 234, secondFig.getFoobar() );
+        assertEquals( 234, withOverrides.getAbc() );
+        assertEquals( 234, secondFig.getAbc() );
         assertTrue( secondFig.isSingleton() );
         assertTrue( withOverrides.isSingleton() );
         assertTrue( secondFig == withOverrides );
         assertEquals( secondFig, withOverrides );
-        assertFalse( anotherFig.isSingleton() );
+        assertFalse( overridesFig.isSingleton() );
     }
 
 
@@ -55,7 +56,7 @@ public class SingletonFigTest {
         @Override
         protected void configureTest() {
             //noinspection unchecked
-            install( new GuicyFigModule( SingletonFig.class, AnotherFig.class ) );
+            install( new GuicyFigModule( OverridesSingletonFig.class, OverridesFig.class ) );
         }
     }
 }

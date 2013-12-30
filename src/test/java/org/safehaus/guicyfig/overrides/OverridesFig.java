@@ -8,6 +8,6 @@ import org.safehaus.guicyfig.Key;
 /**
  * Another configuration interface.
  */
-public interface AnotherFig extends GuicyFig {
+public interface OverridesFig extends GuicyFig {
     int getFoobar();
 }

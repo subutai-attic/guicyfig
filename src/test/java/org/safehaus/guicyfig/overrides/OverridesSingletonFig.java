@@ -9,6 +9,6 @@ import org.safehaus.guicyfig.GuicyFig;
  * Another configuration interface.
  */
 @FigSingleton
-public interface SingletonFig extends GuicyFig {
-    int getFoobar();
+public interface OverridesSingletonFig extends GuicyFig {
+    int getAbc();
 }

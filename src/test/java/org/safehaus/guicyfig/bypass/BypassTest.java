@@ -3,8 +3,10 @@ package org.safehaus.guicyfig.bypass;
 
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.safehaus.guicyfig.AbstractTest;
 import org.safehaus.guicyfig.Bypass;
 import org.safehaus.guicyfig.GuicyFigModule;
 import org.safehaus.guicyfig.Option;
@@ -20,21 +22,20 @@ import static junit.framework.TestCase.assertNotSame;
  * Bypass behavior tests.
  */
 @RunWith( JukitoRunner.class )
-public class BypassTest {
-
+public class BypassTest extends AbstractTest {
     @Inject
-    public AnotherFig nonSingleton;
+    public BypassFig nonSingleton;
 
     @Inject
     @Bypass( options = @Option( method = "getFoobar", override = "33" ) )
-    public AnotherFig bypassedNonSingleton;
+    public BypassFig bypassedNonSingleton;
 
     @Inject
-    public SingletonFig singleton;
+    public BypassSingletonFig singleton;
 
     @Inject
     @Bypass( options = @Option( method = "getFoobar", override = "55" ) )
-    public SingletonFig bypassedSingleton;
+    public BypassSingletonFig bypassedSingleton;
 
 
     @Test
@@ -47,7 +48,7 @@ public class BypassTest {
 
     @Test
     public void testBypass() {
-        // AnotherFig is NOT a FigSingleton so they should be different objects
+        // FooFig is NOT a FigSingleton so they should be different objects
         assertNotSame( nonSingleton, bypassedNonSingleton );
 
         // Bypass should work on the one that is annotated
@@ -56,7 +57,7 @@ public class BypassTest {
         // Bypass should not work on the one that is NOT annotated
         assertEquals( 0, nonSingleton.getFoobar() );
 
-        // SingletonFig is a FigSingleton so they should be the same objects
+        // OverridesSingletonFig is a FigSingleton so they should be the same objects
         assertEquals( singleton, bypassedSingleton );
 
         // Bypass should work on both since it is a singleton and the same object
@@ -70,7 +71,7 @@ public class BypassTest {
         @Override
         protected void configureTest() {
             //noinspection unchecked
-            install( new GuicyFigModule( AnotherFig.class, SingletonFig.class ) );
+            install( new GuicyFigModule( BypassFig.class, BypassSingletonFig.class ) );
         }
     }
 }

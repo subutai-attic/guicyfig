@@ -19,7 +19,7 @@ import static junit.framework.TestCase.assertEquals;
 /**
  * Tests InternalOption.
  */
-public class InternalOptionTest {
+public class InternalOptionTest extends AbstractTest {
     private static final DynamicPropertyFactory factory = DynamicPropertyFactory.getInstance();
 
 

@@ -3,7 +3,6 @@ package org.safehaus.guicyfig;
 
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashCode;
-import com.netflix.config.ConcurrentMapConfiguration;
 import com.netflix.config.DynamicBooleanProperty;
 import com.netflix.config.DynamicDoubleProperty;
 import com.netflix.config.DynamicFloatProperty;
@@ -21,7 +20,6 @@ class InternalOption<T extends PropertyWrapper> implements ConfigOption {
     private final T property;
     private Object currentValue;
     private String bypassValue;
-    private ConcurrentMapConfiguration mapConfiguration;
 
 
     InternalOption( String key, T property ) {
@@ -45,17 +43,6 @@ class InternalOption<T extends PropertyWrapper> implements ConfigOption {
     }
 
 
-    void setOverrideMapConfiguration( ConcurrentMapConfiguration mapConfiguration ) {
-        this.mapConfiguration = mapConfiguration;
-    }
-
-
-    @Override
-    public void setOverride( String override ) {
-        mapConfiguration.setProperty( key, override );
-    }
-
-
     Object getCurrentValue() {
         return currentValue;
     }
@@ -66,8 +53,7 @@ class InternalOption<T extends PropertyWrapper> implements ConfigOption {
     }
 
 
-    @Override
-    public void setBypass( String value ) {
+    void setBypass( String value ) {
         this.bypassValue = value;
     }
 

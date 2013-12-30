@@ -7,6 +7,4 @@ package org.safehaus.guicyfig;
 public interface ConfigOption {
     String key();
     Object value();
-    void setOverride( String value );
-    void setBypass( String value );
 }

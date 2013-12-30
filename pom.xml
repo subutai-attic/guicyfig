@@ -70,10 +70,6 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.16</version>
         <configuration>
-          <argLine>
-            -Darchaius.fixedDelayPollingScheduler.initialDelayMills=500
-            -Darchaius.fixedDelayPollingScheduler.delayMills=500
-          </argLine>
           <systemPropertyVariables>
             <property>
               <name>archaius.fixedDelayPollingScheduler.initialDelayMills</name>
