@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -36,6 +35,8 @@ import net.sf.cglib.proxy.MethodProxy;
  * Install this module, to automatically generate an implementation and inject
  * your GuicyFig extending configuration interfaces. See the TEST cases or the
  * wiki for an example.
+ *
+ * @since 1.0
  */
 public class GuicyFigModule extends AbstractModule {
     private static final Logger LOG = LoggerFactory.getLogger( GuicyFigModule.class );

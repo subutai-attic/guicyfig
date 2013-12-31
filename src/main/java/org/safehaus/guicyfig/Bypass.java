@@ -25,6 +25,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * configuration properties. Do not use a bypass if you would like notifications
  * on property changes to work. For this reason this annotation should be used
  * with care.
+ *
+ * @since 3.0
  */
 @Retention( RUNTIME )
 @Target( { METHOD, FIELD, PARAMETER, CONSTRUCTOR } )

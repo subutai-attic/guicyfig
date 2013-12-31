@@ -11,6 +11,8 @@ import java.util.Properties;
  * extend GuicyFig to enable your own dynamic GuicyFig configuration. Don't worry
  * about implementing a concrete implementation of your configuration. GuicyFig's
  * Guice Module {@link GuicyFigModule} will handle that and injection for you.
+ *
+ * @since 1.0
  */
 public interface GuicyFig {
     /**

@@ -182,14 +182,13 @@
       <version>2.2.2</version>
     </dependency>
 
-    <!-- Test Related Dependencies -->
-
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
-      <scope>test</scope>
     </dependency>
+
+    <!-- Test Related Dependencies -->
 
     <dependency>
       <groupId>org.jukito</groupId>

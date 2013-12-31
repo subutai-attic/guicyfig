@@ -6,8 +6,10 @@ import com.netflix.config.DeploymentContext;
 
 
 /**
-* The environment enumeration type.
-*/
+ * The environment enumeration type.
+ *
+ * @since 2.0
+ */
 public enum Env {
     ALL, UNIT, TEST, CHOP, DEV, INTEG, ACCEPT, PROD;
 

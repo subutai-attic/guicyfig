@@ -14,6 +14,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * An option override used in conjunction with the @Overrides annotation at the
  * point where a configuration interface is being dependency injected as a field,
  * or as a parameter to a method.
+ *
+ * @since 1.0
  */
 @Target( { FIELD, PARAMETER } )
 @Retention( RUNTIME )

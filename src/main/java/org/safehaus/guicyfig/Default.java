@@ -16,6 +16,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * The defaults properties file uses the convention of being present in the
  * package of the configuration interface with its class name. So for example
  * com.foo.Bar would have a com/foo/Bar.properties file for the defaults.
+ *
+ * @since 1.0
  */
 @Target( METHOD )
 @Retention( RUNTIME )

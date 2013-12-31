@@ -22,6 +22,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * Note that the array elements must align: meaning for example, the method
  * name properties specified in position 2 of the array must align with its
  * value in position 2 of the values array.
+ *
+ * @since 1.0
  */
 @Retention( RUNTIME )
 @Target( { METHOD, FIELD, PARAMETER, CONSTRUCTOR } )
