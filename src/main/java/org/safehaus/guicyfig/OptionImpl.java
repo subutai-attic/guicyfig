@@ -10,7 +10,7 @@ import com.google.common.hash.HashCode;
  * Basic Option implementation.
  */
 @SuppressWarnings( "ClassExplicitlyAnnotation" )
-public class OptionImpl implements Option {
+class OptionImpl implements Option {
     private final String override;
     private final String method;
 

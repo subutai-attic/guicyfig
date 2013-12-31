@@ -7,13 +7,18 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.MembersInjector;
 import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
@@ -47,6 +52,19 @@ public class GuicyFigModule extends AbstractModule {
     public GuicyFigModule( Class<? extends GuicyFig>... classes ) {
         this.classes = classes;
         singletons = new HashMap<Class<? extends GuicyFig>, BaseGuicyFig>( classes.length );
+    }
+
+
+    public GuicyFigModule( Set<Class<? extends GuicyFig>> classes ) {
+        this.classes = new Class[classes.size()];
+
+        int ii = 0;
+        for ( Class clazz : classes ) {
+            this.classes[ii] = clazz;
+            ii++;
+        }
+
+        singletons = new HashMap<Class<? extends GuicyFig>, BaseGuicyFig>( classes.size() );
     }
 
 
@@ -367,5 +385,20 @@ public class GuicyFigModule extends AbstractModule {
         }
 
         return config;
+    }
+
+
+    /**
+     * Scans the package that the object is contained in looking for GuicyFig extending
+     * interfaces and wires up a GuicyFigModule to create them while injecting the members
+     * of obj.
+     *
+     * @param obj the object whose members are to be injected
+     */
+    public static void injectMembers( Object obj ) {
+        Reflections reflections = new Reflections( obj.getClass().getPackage().getName() );
+        Set<Class<? extends GuicyFig>> subTypes = reflections.getSubTypesOf( GuicyFig.class );
+        Injector injector = Guice.createInjector( new GuicyFigModule( subTypes ) );
+        injector.injectMembers( obj );
     }
 }

@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * Simple Bypass implementation for internal use.
  */
-public class BypassImpl implements Bypass {
+class BypassImpl implements Bypass {
     private final Set<Env> environments = new HashSet<Env>();
     private final Map<String,Option> options = new HashMap<String, Option>();
 
