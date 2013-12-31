@@ -28,23 +28,23 @@ import com.netflix.config.PropertyWrapper;
 class BaseGuicyFig implements GuicyFig {
     private static final Logger LOG = LoggerFactory.getLogger( BaseGuicyFig.class );
     private final PropertyChangeSupport changeSupport = new PropertyChangeSupport( this );
-    private final Map<String,InternalOption> options = new HashMap<String, InternalOption>();
-    private final Map<Method,InternalOption> methodOptionMap = new HashMap<Method, InternalOption>();
-    private final Map<String,InternalOption> methodNameOptionMap = new HashMap<String, InternalOption>();
+    private final Map<String,InternalOptionState> options = new HashMap<String, InternalOptionState>();
+    private final Map<Method,InternalOptionState> methodOptionMap = new HashMap<Method, InternalOptionState>();
+    private final Map<String,InternalOptionState> methodNameOptionMap = new HashMap<String, InternalOptionState>();
     private DynamicPropertyFactory factory = DynamicPropertyFactory.getInstance();
-    private Overrides overrides;
+    private OverridesImpl overrides;
     private boolean singleton;
 
     /** The user defined fig (configuration) interface that extends GuicyFig */
     private Class figInterface;
-    private Bypass bypass;
+    private BypassImpl bypass;
 
 
-    ConfigOption add( final String key, @Nullable final String defval, Method method ) {
+    OptionState add( final String key, @Nullable final String defval, Method method ) {
         Preconditions.checkNotNull( key, "key cannot be null" );
         Preconditions.checkNotNull( method, "method cannot be null for option with key {}", key );
 
-        InternalOption option;
+        InternalOptionState option;
         PropertyWrapper property;
 
         if ( method.getReturnType().equals( int.class ) || method.getReturnType().equals( Integer.class ) ) {
@@ -73,42 +73,42 @@ class BaseGuicyFig implements GuicyFig {
         }
 
         //noinspection unchecked
-        option = new InternalOption( key, property );
+        option = new InternalOptionState( key, property, method );
         //noinspection ConstantConditions
         property.addCallback( new PropertyChangeRunner( option ) );
         methodOptionMap.put( method, option );
         methodNameOptionMap.put( method.getName(), option );
-        return options.put( option.key(), option );
+        return options.put( option.getKey(), option );
     }
 
 
     class PropertyChangeRunner implements Runnable {
-        final InternalOption option;
+        final InternalOptionState state;
 
-        PropertyChangeRunner( InternalOption option ) {
-            this.option = option;
+        PropertyChangeRunner( InternalOptionState state ) {
+            this.state = state;
         }
 
 
         @Override
         public void run() {
-            if ( ! option.getCurrentValue().equals( option.getNewPropertyValue() ) ) {
+            if ( ! state.getValue().equals( state.getOldValue() ) ) {
                 if ( LOG.isDebugEnabled() ) {
                     StringBuilder sb = new StringBuilder();
-                    sb.append( option.key() ).append( " changed from " ).append( option.getCurrentValue() )
-                            .append( " to " ).append( option.getNewPropertyValue() );
+                    sb.append( state.getKey() ).append( " changed from " ).append( state.getOldValue() )
+                            .append( " to " ).append( state.getValue() );
 
                     LOG.debug( sb.toString() );
                 }
 
-                changeSupport.firePropertyChange( option.key(), option.getCurrentValue(), option.getNewPropertyValue() );
-                option.setCurrentValue( option.getNewPropertyValue() );
+                changeSupport.firePropertyChange( state.getKey(), state.getOldValue(), state.getValue() );
+                state.update();
             }
         }
     }
 
 
-    ConfigOption getOption( Method method ) {
+    OptionState getOption( Method method ) {
         return methodOptionMap.get( method );
     }
 
@@ -117,6 +117,32 @@ class BaseGuicyFig implements GuicyFig {
         Preconditions.checkNotNull( figInterface, "The configuration interface cannot be null." );
 
         this.figInterface = figInterface;
+    }
+
+
+    @Override
+    public void override( String key, String value ) {
+        if ( overrides == null ) {
+            overrides = new OverridesImpl( "default" );
+        }
+
+        if ( methodNameOptionMap.containsKey( key ) ) {
+            InternalOptionState configOption = methodNameOptionMap.get( key );
+            Option option = overrides.addOption( key, value );
+            configOption.setOverride( option );
+        }
+        else if ( options.containsKey( key ) ) {
+            InternalOptionState configOption = options.get( key );
+            Option option = overrides.addOption( configOption.getMethod().toString(), value );
+            configOption.setOverride( option );
+        }
+        else {
+            throw new IllegalArgumentException( "Supplied key " + key + " is not a valid key or method name for this "
+                    + getFigInterface().toString() );
+        }
+
+        ( ( ConcurrentCompositeConfiguration ) ConfigurationManager.getConfigInstance() )
+                .setOverrideProperty( key, value );
     }
 
 
@@ -138,6 +164,29 @@ class BaseGuicyFig implements GuicyFig {
 
 
     @Override
+    public void bypass( String key, String bypassValue ) {
+        if ( bypass == null ) {
+            bypass = new BypassImpl();
+        }
+
+        if ( methodNameOptionMap.containsKey( key ) ) {
+            InternalOptionState state = methodNameOptionMap.get( key );
+            Option option = bypass.addOption( key, bypassValue );
+            state.setBypass( option );
+        }
+        else if ( options.containsKey( key ) ) {
+            InternalOptionState state = options.get( key );
+            Option option = bypass.addOption( state.getMethod().getName(), bypassValue );
+            state.setBypass( option );
+        }
+        else {
+            throw new IllegalArgumentException( "Supplied key " + key + " is not a valid key or method name for this "
+                    + getFigInterface().toString() );
+        }
+    }
+
+
+    @Override
     public Bypass getBypass() {
         return bypass;
     }
@@ -147,13 +196,13 @@ class BaseGuicyFig implements GuicyFig {
         Preconditions.checkNotNull( bypass );
         for ( Option annotation : bypass.options() ) {
             if ( methodNameOptionMap.containsKey( annotation.method() ) ) {
-                InternalOption option = methodNameOptionMap.get( annotation.method() );
-                option.setBypass( annotation.override() );
+                InternalOptionState option = methodNameOptionMap.get( annotation.method() );
+                option.setBypass( annotation );
 
                 if ( LOG.isInfoEnabled() ) {
                     StringBuilder sb = new StringBuilder();
-                    sb.append( "ConfigOption " ).append( option.key() ).append( " had value " )
-                      .append( option.value() ).append( " bypassed by " ).append( option.getBypass() );
+                    sb.append( "OptionState " ).append( option.getKey() ).append( " had value " )
+                      .append( option.getValue() ).append( " bypassed by " ).append( option.getBypass() );
                     LOG.info( sb.toString() );
                 }
             }
@@ -166,7 +215,7 @@ class BaseGuicyFig implements GuicyFig {
         // A null bypass will clear out all the bypass settings in effect
         if ( bypass == null ) {
             for ( Option annotation : this.bypass.options() ) {
-                InternalOption option = methodNameOptionMap.get( annotation.method() );
+                InternalOptionState option = methodNameOptionMap.get( annotation.method() );
                 option.setBypass( null );
             }
             this.bypass = null;
@@ -193,7 +242,12 @@ class BaseGuicyFig implements GuicyFig {
             applyBypass( bypass );
         }
 
-        this.bypass = bypass;
+        if ( bypass instanceof BypassImpl ) {
+            this.bypass = ( BypassImpl ) bypass;
+        }
+        else {
+            this.bypass = new BypassImpl( bypass );
+        }
     }
 
 
@@ -229,20 +283,25 @@ class BaseGuicyFig implements GuicyFig {
                     ConfigurationManager.getConfigInstance();
 
             for ( Option annotation : overrides.options() ) {
-                InternalOption option = methodNameOptionMap.get( annotation.method() );
-                option.setCurrentValue( annotation.override() );
-                ccc.setOverrideProperty( option.key(), annotation.override() );
+                InternalOptionState state = methodNameOptionMap.get( annotation.method() );
+                state.setOverride( annotation );
+                ccc.setOverrideProperty( state.getKey(), annotation.override() );
 
                 if ( LOG.isInfoEnabled() ) {
                     StringBuilder sb = new StringBuilder();
-                    sb.append( "ConfigOption " ).append( option.key() ).append( " had value " )
-                      .append( option.value() ).append( " overridden by " ).append( annotation.override());
+                    sb.append( "OptionState " ).append( state.getKey() ).append( " had value " )
+                      .append( state.getValue() ).append( " overridden by " ).append( annotation.override());
                     LOG.info( sb.toString() );
                 }
             }
         }
 
-        this.overrides = overrides;
+        if ( overrides instanceof OverridesImpl ) {
+            this.overrides = ( OverridesImpl ) overrides;
+        }
+        else {
+            this.overrides = new OverridesImpl( overrides );
+        }
     }
 
 
@@ -265,13 +324,13 @@ class BaseGuicyFig implements GuicyFig {
 
 
     @Override
-    public ConfigOption[] getOptions() {
-        return options.values().toArray( new ConfigOption[options.size()] );
+    public OptionState[] getOptions() {
+        return options.values().toArray( new OptionState[options.size()] );
     }
 
 
     @Override
-    public ConfigOption getOption( String key ) {
+    public OptionState getOption( String key ) {
         return options.get( key );
     }
 
@@ -279,7 +338,7 @@ class BaseGuicyFig implements GuicyFig {
     @Override
     public String getKeyByMethod( final String methodName ) {
         if ( methodNameOptionMap.containsKey( methodName ) ) {
-            return methodNameOptionMap.get( methodName ).key();
+            return methodNameOptionMap.get( methodName ).getKey();
         }
 
         return null;
@@ -289,7 +348,7 @@ class BaseGuicyFig implements GuicyFig {
     @Override
     public Object getValueByMethod( final String methodName ) {
         if ( methodNameOptionMap.containsKey( methodName ) ) {
-            return methodNameOptionMap.get( methodName ).value();
+            return methodNameOptionMap.get( methodName ).getValue();
         }
 
         return null;
@@ -301,9 +360,9 @@ class BaseGuicyFig implements GuicyFig {
         Preconditions.checkNotNull( properties );
         Properties filtered = new Properties();
 
-        for ( ConfigOption option : options.values() ) {
-            if ( properties.containsKey( option.key() ) ) {
-                filtered.put( option.key(), properties.getProperty( option.key() ) );
+        for ( OptionState option : options.values() ) {
+            if ( properties.containsKey( option.getKey() ) ) {
+                filtered.put( option.getKey(), properties.getProperty( option.getKey() ) );
             }
         }
 
@@ -316,9 +375,9 @@ class BaseGuicyFig implements GuicyFig {
         Preconditions.checkNotNull( properties );
         Map<String,Object> filtered = new HashMap<String, Object>();
 
-        for ( ConfigOption option : options.values() ) {
-            if ( properties.containsKey( option.key() ) ) {
-                filtered.put( option.key(), properties.get( option.key() ) );
+        for ( OptionState option : options.values() ) {
+            if ( properties.containsKey( option.getKey() ) ) {
+                filtered.put( option.getKey(), properties.get( option.getKey() ) );
             }
         }
 

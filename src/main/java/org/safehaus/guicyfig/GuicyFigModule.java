@@ -13,7 +13,6 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
 import com.google.inject.AbstractModule;
 import com.google.inject.MembersInjector;
 import com.google.inject.Provider;
@@ -21,8 +20,6 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
-import com.netflix.config.ConcurrentCompositeConfiguration;
-import com.netflix.config.ConfigurationManager;
 
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Enhancer;
@@ -187,7 +184,7 @@ public class GuicyFigModule extends AbstractModule {
             @Override
             public Object intercept( final Object o, final Method method, final Object[] objects,
                                      final MethodProxy methodProxy ) throws Throwable {
-                InternalOption option = ( InternalOption ) config.getOption( method );
+                InternalOptionState option = ( InternalOptionState ) config.getOption( method );
 
                 /*
                  * ------------------------------------------------------------
@@ -248,6 +245,11 @@ public class GuicyFigModule extends AbstractModule {
                         return null;
                     }
 
+                    if ( method.getName().equals( "override" ) ) {
+                        config.override( ( String ) objects[0], ( String ) objects[1] );
+                        return null;
+                    }
+
                     if ( method.getName().equals( "getOverrides" ) ) {
                         return config.getOverrides();
                     }
@@ -285,13 +287,16 @@ public class GuicyFigModule extends AbstractModule {
                 }
 
                 // OK this stuff is redirected to the dynamic properties
-                LOG.debug( "Invoking method {} to get property with key {}", method.getName(), option.key() );
+                LOG.debug( "Invoking method {} to get property with key {}", method.getName(), option.getKey() );
 
                 if ( option.isBypassed() ) {
-                    return option.getBypass();
+                    return option.getBypassedValue();
+                }
+                else if ( option.isOverridden() ) {
+                    return option.getOverriddenValue();
                 }
                 else {
-                    return option.value();
+                    return option.getValue();
                 }
             } }
         };

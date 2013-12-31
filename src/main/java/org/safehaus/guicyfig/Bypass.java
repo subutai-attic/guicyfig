@@ -31,9 +31,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @BindingAnnotation
 public @interface Bypass {
     /**
-     * The options to setOverride.
+     * The options to override.
      *
-     * @return the options to setOverride
+     * @return the options to override
      */
     Option[] options();
 
