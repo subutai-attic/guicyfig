@@ -324,7 +324,7 @@ public class ServiceFigTest extends AbstractTest {
         withOverrides.addPropertyChangeListener( listener );
         withOverrides.removePropertyChangeListener( listener );
 
-        withOverrides.setOverride( "getStartupTimeout", "100" );
+        withOverrides.override( "getStartupTimeout", "100" );
         assertEquals( 100L, withOverrides.getStartupTimeout() );
     }
 

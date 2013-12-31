@@ -36,9 +36,9 @@ public @interface Overrides {
     String name();
 
     /**
-     * The options to setOverride.
+     * The options to override.
      *
-     * @return the options to setOverride
+     * @return the options to override
      */
     Option[] options();
 

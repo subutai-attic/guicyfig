@@ -30,7 +30,8 @@ public class BypassImpl implements Bypass {
 
 
     Option addOption( Option option ) {
-        return options.put( option.method(), option );
+        options.put( option.method(), option );
+        return option;
     }
 
 

@@ -245,8 +245,8 @@ public class GuicyFigModule extends AbstractModule {
                         return null;
                     }
 
-                    if ( method.getName().equals( "setOverride" ) ) {
-                        config.setOverride( ( String ) objects[0], ( String ) objects[1] );
+                    if ( method.getName().equals( "override" ) ) {
+                        config.override( ( String ) objects[0], ( String ) objects[1] );
                         return null;
                     }
 

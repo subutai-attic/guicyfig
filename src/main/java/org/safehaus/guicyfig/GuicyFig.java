@@ -94,7 +94,7 @@ public interface GuicyFig {
      * @param key the key or the method name (either can be provided)
      * @param override the override value
      */
-    void setOverride( String key, String override );
+    void override( String key, String override );
 
 
     /**
@@ -111,6 +111,14 @@ public interface GuicyFig {
      * @return the overrides, if any, applied to this GuicyFig
      */
     Overrides getOverrides();
+
+
+    /**
+     * Sets a method (or key) value bypass.
+     * @param key the key or the method name (either can be provided)
+     * @param bypass the bypass value
+     */
+    void bypass( String key, String bypass );
 
 
     /**

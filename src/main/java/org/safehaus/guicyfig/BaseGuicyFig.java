@@ -121,7 +121,7 @@ class BaseGuicyFig implements GuicyFig {
 
 
     @Override
-    public void setOverride( String key, String value ) {
+    public void override( String key, String value ) {
         if ( overrides == null ) {
             overrides = new OverridesImpl( "default" );
         }
@@ -160,6 +160,29 @@ class BaseGuicyFig implements GuicyFig {
     @Override
     public boolean isSingleton() {
         return singleton;
+    }
+
+
+    @Override
+    public void bypass( String key, String bypassValue ) {
+        if ( bypass == null ) {
+            bypass = new BypassImpl();
+        }
+
+        if ( methodNameOptionMap.containsKey( key ) ) {
+            InternalOptionState state = methodNameOptionMap.get( key );
+            Option option = bypass.addOption( key, bypassValue );
+            state.setBypass( option );
+        }
+        else if ( options.containsKey( key ) ) {
+            InternalOptionState state = options.get( key );
+            Option option = bypass.addOption( state.getMethod().getName(), bypassValue );
+            state.setBypass( option );
+        }
+        else {
+            throw new IllegalArgumentException( "Supplied key " + key + " is not a valid key or method name for this "
+                    + getFigInterface().toString() );
+        }
     }
 
 
