@@ -1,6 +1,8 @@
 package org.safehaus.guicyfig;
 
 
+import java.lang.reflect.Method;
+
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashCode;
 import com.netflix.config.DynamicBooleanProperty;
@@ -15,56 +17,97 @@ import com.netflix.config.PropertyWrapper;
 /**
  * A module's configuration options.
  */
-class InternalOption<T extends PropertyWrapper> implements ConfigOption {
+class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionState<V> {
     private final String key;
     private final T property;
-    private Object currentValue;
-    private String bypassValue;
+    private V oldValue;
+    private Option bypass;
+    private Option override;
+    private Method method;
 
 
-    InternalOption( String key, T property ) {
+    InternalOptionState( String key, T property, Method method ) {
         Preconditions.checkNotNull( key, "key cannot be null" );
         Preconditions.checkNotNull( property, "property cannot be null" );
 
         this.key = key;
         this.property = property;
-        this.currentValue = property.getValue();
+        this.method = method;
+        this.oldValue = property.getValue();
+    }
+
+
+    Method getMethod() {
+        return method;
+    }
+
+
+    V update() {
+        V val = oldValue;
+        oldValue = property.getValue();
+        return val;
     }
 
 
     @Override
-    public String key() {
+    public String getKey() {
         return key;
     }
 
 
-    void setCurrentValue( Object value ) {
-        currentValue = value;
-    }
-
-
-    Object getCurrentValue() {
-        return currentValue;
-    }
-
-
-    Object getNewPropertyValue() {
+    @Override
+    public V getValue() {
         return property.getValue();
     }
 
 
-    void setBypass( String value ) {
-        this.bypassValue = value;
+    @Override
+    public V getOldValue() {
+        return oldValue;
     }
 
 
-    boolean isBypassed() {
-        return bypassValue != null;
+    @Override
+    public Option getOverride() {
+        return override;
     }
 
 
-    public Object getBypass() {
-        return convertValue( bypassValue );
+    @Override
+    public int hashCode() {
+        return HashCode.fromString( key ).hashCode();
+    }
+
+
+    T getProperty() {
+        return property;
+    }
+
+
+    void setBypass( Option value ) {
+        this.bypass = value;
+    }
+
+
+    @Override
+    public boolean isBypassed() {
+        return bypass != null;
+    }
+
+
+    @Override
+    public boolean isOverridden() {
+        return override != null;
+    }
+
+
+    public Option getBypass() {
+        return bypass;
+    }
+
+
+    public void setOverride( Option override ) {
+        this.override = override;
     }
 
 
@@ -96,17 +139,5 @@ class InternalOption<T extends PropertyWrapper> implements ConfigOption {
         }
 
         throw new IllegalArgumentException( "Don't know how to convert the property: " + property.toString() );
-    }
-
-
-    @Override
-    public Object value() {
-        return currentValue;
-    }
-
-
-    @Override
-    public int hashCode() {
-        return HashCode.fromString( key ).hashCode();
     }
 }

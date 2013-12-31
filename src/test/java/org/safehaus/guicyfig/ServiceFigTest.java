@@ -293,9 +293,9 @@ public class ServiceFigTest extends AbstractTest {
          * Let's check and see if the super interface methods are working.
          */
 
-        ConfigOption[] options = withOverrides.getOptions();
-        for ( ConfigOption option : options ) {
-            assertEquals( option, withOverrides.getOption( option.key() ) );
+        OptionState[] options = withOverrides.getOptions();
+        for ( OptionState option : options ) {
+            assertEquals( option, withOverrides.getOption( option.getKey() ) );
         }
 
         Properties starting = new Properties();
@@ -323,6 +323,9 @@ public class ServiceFigTest extends AbstractTest {
 
         withOverrides.addPropertyChangeListener( listener );
         withOverrides.removePropertyChangeListener( listener );
+
+        withOverrides.setOverride( "getStartupTimeout", "100" );
+        assertEquals( 100L, withOverrides.getStartupTimeout() );
     }
 
 

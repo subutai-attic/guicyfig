@@ -36,7 +36,7 @@ public interface GuicyFig {
      *
      * @return the configuration options
      */
-    ConfigOption[] getOptions();
+    OptionState[] getOptions();
 
 
     /**
@@ -45,7 +45,7 @@ public interface GuicyFig {
      * @param key the key of the configuration option
      * @return the configuration option
      */
-    ConfigOption getOption( String key );
+    OptionState getOption( String key );
 
 
     /**
@@ -86,6 +86,15 @@ public interface GuicyFig {
      * @return a Map of entries whose keys map to this GuicyFig's options
      */
     Map<String,Object> filterOptions( Map<String,Object> entries );
+
+
+    /**
+     * Sets a method (or key) value override.
+     *
+     * @param key the key or the method name (either can be provided)
+     * @param override the override value
+     */
+    void setOverride( String key, String override );
 
 
     /**
