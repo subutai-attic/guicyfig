@@ -290,10 +290,10 @@ public class GuicyFigModule extends AbstractModule {
                 LOG.debug( "Invoking method {} to get property with key {}", method.getName(), option.getKey() );
 
                 if ( option.isBypassed() ) {
-                    return option.convertValue( option.getBypass().override() );
+                    return option.getBypassedValue();
                 }
                 else if ( option.isOverridden() ) {
-                    return option.convertValue( option.getOverride().override() );
+                    return option.getOverriddenValue();
                 }
                 else {
                     return option.getValue();
