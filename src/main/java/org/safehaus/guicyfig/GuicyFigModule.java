@@ -41,18 +41,21 @@ import net.sf.cglib.proxy.MethodProxy;
 public class GuicyFigModule extends AbstractModule {
     private static final Logger LOG = LoggerFactory.getLogger( GuicyFigModule.class );
     private final Class[] classes;
-    private final Map<Class<? extends GuicyFig>,BaseGuicyFig> singletons;
+
+    // Static because singleton instances to be injected regardless of Module instance
+    private static final Map<Class<? extends GuicyFig>,BaseGuicyFig> singletons =
+            new HashMap<Class<? extends GuicyFig>, BaseGuicyFig>();
+
+
 
 
     public GuicyFigModule( Class<? extends GuicyFig> clazz ) {
         classes = new Class[] { clazz };
-        singletons = new HashMap<Class<? extends GuicyFig>, BaseGuicyFig>( 1 );
     }
 
 
     public GuicyFigModule( Class<? extends GuicyFig>... classes ) {
         this.classes = classes;
-        singletons = new HashMap<Class<? extends GuicyFig>, BaseGuicyFig>( classes.length );
     }
 
 
@@ -64,8 +67,6 @@ public class GuicyFigModule extends AbstractModule {
             this.classes[ii] = clazz;
             ii++;
         }
-
-        singletons = new HashMap<Class<? extends GuicyFig>, BaseGuicyFig>( classes.size() );
     }
 
 
