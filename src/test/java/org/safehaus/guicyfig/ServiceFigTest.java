@@ -110,6 +110,36 @@ public class ServiceFigTest extends AbstractTest {
 
 
     @Test
+    public void testBypass() throws Exception {
+        assertEquals( 25, noOverrides.getExecutionCount() );
+        noOverrides.bypass( "getExecutionCount", "123" );
+        assertEquals( 123, noOverrides.getExecutionCount() );
+        noOverrides.bypass( "getExecutionCount", null );
+        assertEquals( 25, noOverrides.getExecutionCount() );
+
+        noOverrides.bypass( "getExecutionCount", "456" );
+        assertEquals( 456, noOverrides.getExecutionCount() );
+        noOverrides.setBypass( null );
+        assertEquals( 25, noOverrides.getExecutionCount() );
+    }
+
+
+    @Test
+    public void testOverride() throws Exception {
+        assertEquals( 25, noOverrides.getExecutionCount() );
+        noOverrides.override( "getExecutionCount", "123" );
+        assertEquals( 123, noOverrides.getExecutionCount() );
+        noOverrides.override( "getExecutionCount", null );
+        assertEquals( 25, noOverrides.getExecutionCount() );
+
+        noOverrides.override( "getExecutionCount", "456" );
+        assertEquals( 456, noOverrides.getExecutionCount() );
+        noOverrides.setOverrides( null );
+        assertEquals( 25, noOverrides.getExecutionCount() );
+    }
+
+
+    @Test
     public void testDynamicProperties() throws IOException, InterruptedException {
         DynamicPropertyFactory factory = DynamicPropertyFactory.getInstance();
 

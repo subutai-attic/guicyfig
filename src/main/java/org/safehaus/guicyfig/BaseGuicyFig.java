@@ -126,23 +126,41 @@ class BaseGuicyFig implements GuicyFig {
             overrides = new OverridesImpl( "default" );
         }
 
+        ConcurrentCompositeConfiguration ccc = ( ConcurrentCompositeConfiguration )
+                ConfigurationManager.getConfigInstance();
+
         if ( methodNameOptionMap.containsKey( key ) ) {
             InternalOptionState configOption = methodNameOptionMap.get( key );
-            Option option = overrides.addOption( key, value );
-            configOption.setOverride( option );
+
+            if ( value == null ) {
+                overrides.removeOption( key );
+                configOption.setOverride( null );
+                ccc.clearOverrideProperty( key );
+            }
+            else {
+                Option option = overrides.addOption( key, value );
+                configOption.setOverride( option );
+                ccc.setOverrideProperty( key, value );
+            }
         }
         else if ( options.containsKey( key ) ) {
             InternalOptionState configOption = options.get( key );
-            Option option = overrides.addOption( configOption.getMethod().toString(), value );
-            configOption.setOverride( option );
+
+            if ( value == null ) {
+                overrides.removeOption( key );
+                configOption.setOverride( null );
+                ccc.clearOverrideProperty( key );
+            }
+            else {
+                Option option = overrides.addOption( configOption.getMethod().toString(), value );
+                configOption.setOverride( option );
+                ccc.setOverrideProperty( key, value );
+            }
         }
         else {
             throw new IllegalArgumentException( "Supplied key " + key + " is not a valid key or method name for this "
                     + getFigInterface().toString() );
         }
-
-        ( ( ConcurrentCompositeConfiguration ) ConfigurationManager.getConfigInstance() )
-                .setOverrideProperty( key, value );
     }
 
 
@@ -171,13 +189,27 @@ class BaseGuicyFig implements GuicyFig {
 
         if ( methodNameOptionMap.containsKey( key ) ) {
             InternalOptionState state = methodNameOptionMap.get( key );
-            Option option = bypass.addOption( key, bypassValue );
-            state.setBypass( option );
+
+            if ( bypassValue == null ) {
+                bypass.removeOption( key );
+                state.setBypass( null );
+            }
+            else {
+                Option option = bypass.addOption( key, bypassValue );
+                state.setBypass( option );
+            }
         }
         else if ( options.containsKey( key ) ) {
             InternalOptionState state = options.get( key );
-            Option option = bypass.addOption( state.getMethod().getName(), bypassValue );
-            state.setBypass( option );
+
+            if ( bypassValue == null ) {
+                bypass.removeOption( key );
+                state.setBypass( null );
+            }
+            else {
+                Option option = bypass.addOption( state.getMethod().getName(), bypassValue );
+                state.setBypass( option );
+            }
         }
         else {
             throw new IllegalArgumentException( "Supplied key " + key + " is not a valid key or method name for this "
@@ -260,6 +292,8 @@ class BaseGuicyFig implements GuicyFig {
 
                 if( this.overrides != null ) {
                     for ( Option option : this.overrides.options() ) {
+                        InternalOptionState state = methodNameOptionMap.get( option.method() );
+                        state.setOverride( null );
                         ccc.clearOverrideProperty( getKeyByMethod( option.method() ) );
                     }
                 }

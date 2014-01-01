@@ -69,6 +69,10 @@ class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionStat
 
     @Override
     public V getOverriddenValue() {
+        if ( override == null || override.override() == null ) {
+            return null;
+        }
+
         //noinspection unchecked
         return ( V ) convertValue( override.override() );
     }
@@ -76,6 +80,10 @@ class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionStat
 
     @Override
     public V getBypassedValue() {
+        if ( bypass == null || bypass.override() == null ) {
+            return null;
+        }
+
         //noinspection unchecked
         return ( V ) convertValue( bypass.override() );
     }

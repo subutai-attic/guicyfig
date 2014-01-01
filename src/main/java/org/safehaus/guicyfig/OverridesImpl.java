@@ -77,4 +77,9 @@ class OverridesImpl implements Overrides {
     public Class<? extends Annotation> annotationType() {
         return Overrides.class;
     }
+
+
+    public Option removeOption( final String key ) {
+        return options.remove( key );
+    }
 }

@@ -42,5 +42,6 @@ public interface ServiceFig extends GuicyFig {
     @Default( "false" )
     boolean isDebugEnabled();
 
+    @SuppressWarnings( "UnusedDeclaration" )
     boolean getAbc();
 }

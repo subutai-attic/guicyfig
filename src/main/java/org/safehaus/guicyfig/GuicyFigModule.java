@@ -269,6 +269,11 @@ public class GuicyFigModule extends AbstractModule {
                         return null;
                     }
 
+                    if ( method.getName().equals( "bypass" ) ) {
+                        config.bypass( ( String ) objects[0], ( String ) objects[1] );
+                        return null;
+                    }
+
                     if ( method.getName().equals( "getOverrides" ) ) {
                         return config.getOverrides();
                     }

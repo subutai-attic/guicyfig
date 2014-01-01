@@ -12,6 +12,7 @@ import java.util.Set;
 /**
  * Simple Bypass implementation for internal use.
  */
+@SuppressWarnings( "ClassExplicitlyAnnotation" )
 class BypassImpl implements Bypass {
     private final Set<Env> environments = new HashSet<Env>();
     private final Map<String,Option> options = new HashMap<String, Option>();
@@ -64,5 +65,10 @@ class BypassImpl implements Bypass {
     @Override
     public Class<? extends Annotation> annotationType() {
         return Bypass.class;
+    }
+
+
+    public Option removeOption( final String key ) {
+        return options.remove( key );
     }
 }
