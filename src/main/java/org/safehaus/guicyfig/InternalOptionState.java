@@ -68,7 +68,7 @@ class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionStat
 
 
     @Override
-    public V getOverriddenValue() {
+    public V getOverrideValue() {
         if ( override == null || override.override() == null ) {
             return null;
         }
@@ -79,7 +79,7 @@ class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionStat
 
 
     @Override
-    public V getBypassedValue() {
+    public V getBypassValue() {
         if ( bypass == null || bypass.override() == null ) {
             return null;
         }
@@ -123,6 +123,7 @@ class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionStat
     }
 
 
+    @Override
     public Option getBypass() {
         return bypass;
     }
@@ -133,7 +134,20 @@ class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionStat
     }
 
 
-    private Object convertValue( String value ) {
+    Object getEffectiveValue() {
+        if ( bypass == null && override == null ) {
+            return property.getValue();
+        }
+
+        if ( bypass == null ) {
+            return getOverrideValue();
+        }
+
+        return getBypassValue();
+    }
+
+
+    Object convertValue( String value ) {
         if ( property instanceof DynamicStringProperty ) {
             return value;
         }

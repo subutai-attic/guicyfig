@@ -93,14 +93,7 @@ class BaseGuicyFig implements GuicyFig {
         @Override
         public void run() {
             if ( ! state.getValue().equals( state.getOldValue() ) ) {
-                if ( LOG.isDebugEnabled() ) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append( state.getKey() ).append( " changed from " ).append( state.getOldValue() )
-                            .append( " to " ).append( state.getValue() );
-
-                    LOG.debug( sb.toString() );
-                }
-
+                LOG.debug( state.getKey() + " changed from {} to {}", state.getOldValue(), state.getValue() );
                 changeSupport.firePropertyChange( state.getKey(), state.getOldValue(), state.getValue() );
                 state.update();
             }
@@ -120,46 +113,63 @@ class BaseGuicyFig implements GuicyFig {
     }
 
 
+    private InternalOptionState getOptionState( String methodOrKey ) {
+        String key = methodOrKey;
+
+        // method arg actually is correctly provided as a method name
+        if ( ! options.containsKey( methodOrKey ) && methodNameOptionMap.containsKey( methodOrKey ) ) {
+            key = getKeyByMethod( methodOrKey );
+        }
+        // method arg is not correctly provided as a method name but as a key
+        else if ( options.containsKey( methodOrKey ) && ! methodNameOptionMap.containsKey( methodOrKey ) ) {
+            key = methodOrKey;
+            methodOrKey = options.get( key ).getMethod().getName();
+            LOG.warn( "Providing a key {} instead of method name {}.", key, methodOrKey );
+        }
+        else if ( options.containsKey( methodOrKey ) && methodNameOptionMap.containsKey( methodOrKey ) ) {
+            LOG.info( "Although odd yet not illegal, the method name is the same as the key {}", methodOrKey );
+            key = methodOrKey;
+        }
+        else if ( ! options.containsKey( methodOrKey ) && ! methodNameOptionMap.containsKey( methodOrKey ) ) {
+            throw new IllegalArgumentException( "Supplied key " + methodOrKey + " is not a valid key or method name for this "
+                    + getFigInterface().toString() );
+        }
+
+        return options.get( key );
+    }
+
+
     @Override
-    public void override( String key, String value ) {
+    public void override( String method, String override ) {
         if ( overrides == null ) {
             overrides = new OverridesImpl( "default" );
         }
 
         ConcurrentCompositeConfiguration ccc = ( ConcurrentCompositeConfiguration )
                 ConfigurationManager.getConfigInstance();
+        InternalOptionState state = getOptionState( method );
 
-        if ( methodNameOptionMap.containsKey( key ) ) {
-            InternalOptionState configOption = methodNameOptionMap.get( key );
+        Object oldEffective = state.getEffectiveValue();
 
-            if ( value == null ) {
-                overrides.removeOption( key );
-                configOption.setOverride( null );
-                ccc.clearOverrideProperty( key );
-            }
-            else {
-                Option option = overrides.addOption( key, value );
-                configOption.setOverride( option );
-                ccc.setOverrideProperty( key, value );
-            }
-        }
-        else if ( options.containsKey( key ) ) {
-            InternalOptionState configOption = options.get( key );
-
-            if ( value == null ) {
-                overrides.removeOption( key );
-                configOption.setOverride( null );
-                ccc.clearOverrideProperty( key );
-            }
-            else {
-                Option option = overrides.addOption( configOption.getMethod().toString(), value );
-                configOption.setOverride( option );
-                ccc.setOverrideProperty( key, value );
-            }
+        // we're clearing the old override out so the old value is the override
+        // and the new value is the current value
+        if ( override == null ) {
+            overrides.removeOption( method );
+            state.setOverride( null );
+            ccc.clearOverrideProperty( state.getKey() );
         }
         else {
-            throw new IllegalArgumentException( "Supplied key " + key + " is not a valid key or method name for this "
-                    + getFigInterface().toString() );
+            Option option = overrides.addOption( method, override );
+            state.setOverride( option );
+            ccc.setOverrideProperty( method, override );
+        }
+
+        Object newEffective = state.getEffectiveValue();
+        if ( ! newEffective.equals( oldEffective ) ) {
+            changeSupport.firePropertyChange( state.getKey(), oldEffective, newEffective );
+        }
+        else {
+            LOG.warn( "Not firing change notifications because the override change induces no value change." );
         }
     }
 
@@ -182,38 +192,29 @@ class BaseGuicyFig implements GuicyFig {
 
 
     @Override
-    public void bypass( String key, String bypassValue ) {
+    public void bypass( String method, String bypassValue ) {
         if ( bypass == null ) {
             bypass = new BypassImpl();
         }
 
-        if ( methodNameOptionMap.containsKey( key ) ) {
-            InternalOptionState state = methodNameOptionMap.get( key );
+        InternalOptionState state = getOptionState( method );
+        Object oldEffective = state.getEffectiveValue();
 
-            if ( bypassValue == null ) {
-                bypass.removeOption( key );
-                state.setBypass( null );
-            }
-            else {
-                Option option = bypass.addOption( key, bypassValue );
-                state.setBypass( option );
-            }
-        }
-        else if ( options.containsKey( key ) ) {
-            InternalOptionState state = options.get( key );
-
-            if ( bypassValue == null ) {
-                bypass.removeOption( key );
-                state.setBypass( null );
-            }
-            else {
-                Option option = bypass.addOption( state.getMethod().getName(), bypassValue );
-                state.setBypass( option );
-            }
+        if ( bypassValue == null ) {
+            bypass.removeOption( method );
+            state.setBypass( null );
         }
         else {
-            throw new IllegalArgumentException( "Supplied key " + key + " is not a valid key or method name for this "
-                    + getFigInterface().toString() );
+            Option option = bypass.addOption( method, bypassValue );
+            state.setBypass( option );
+        }
+
+        Object newEffective = state.getEffectiveValue();
+        if ( ! newEffective.equals( oldEffective ) ) {
+            changeSupport.firePropertyChange( state.getKey(), oldEffective, newEffective );
+        }
+        else {
+            LOG.warn( "Not firing change notifications because the bypass change induces no value change." );
         }
     }
 
@@ -230,20 +231,15 @@ class BaseGuicyFig implements GuicyFig {
             if ( methodNameOptionMap.containsKey( annotation.method() ) ) {
                 InternalOptionState option = methodNameOptionMap.get( annotation.method() );
                 option.setBypass( annotation );
-
-                if ( LOG.isInfoEnabled() ) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append( "OptionState " ).append( option.getKey() ).append( " had value " )
-                      .append( option.getValue() ).append( " bypassed by " ).append( option.getBypass() );
-                    LOG.info( sb.toString() );
-                }
+                LOG.info( option.getKey() + " OptionState key had value {} bypassed by {}",
+                        option.getValue(), option.getBypass() );
             }
         }
     }
 
 
     @Override
-    public void setBypass( Bypass bypass ) {
+    public boolean setBypass( Bypass bypass ) {
         // A null bypass will clear out all the bypass settings in effect
         if ( bypass == null ) {
             for ( Option annotation : this.bypass.options() ) {
@@ -251,7 +247,7 @@ class BaseGuicyFig implements GuicyFig {
                 option.setBypass( null );
             }
             this.bypass = null;
-            return;
+            return true;
         }
 
         HashSet<Env> environs = new HashSet<Env>( bypass.environments().length );
@@ -261,7 +257,7 @@ class BaseGuicyFig implements GuicyFig {
         // if the ALL environment is present then we just add all bypasses
         if ( environs.contains( Env.ALL ) || ctxEnv == Env.ALL ) {
             applyBypass( bypass );
-            return;
+            return true;
         }
 
         /*
@@ -272,19 +268,23 @@ class BaseGuicyFig implements GuicyFig {
 
         if ( environs.contains( ctxEnv ) ) {
             applyBypass( bypass );
+
+            if ( bypass instanceof BypassImpl ) {
+                this.bypass = ( BypassImpl ) bypass;
+            }
+            else {
+                this.bypass = new BypassImpl( bypass );
+            }
+
+            return true;
         }
 
-        if ( bypass instanceof BypassImpl ) {
-            this.bypass = ( BypassImpl ) bypass;
-        }
-        else {
-            this.bypass = new BypassImpl( bypass );
-        }
+        return false;
     }
 
 
     @Override
-    public void setOverrides( Overrides overrides ) {
+    public boolean setOverrides( Overrides overrides ) {
         if ( overrides == null ) {
             if ( ConfigurationManager.getConfigInstance() instanceof ConcurrentCompositeConfiguration ) {
                 ConcurrentCompositeConfiguration ccc = ( ConcurrentCompositeConfiguration )
@@ -300,7 +300,7 @@ class BaseGuicyFig implements GuicyFig {
             }
 
             this.overrides = null;
-            return;
+            return true;
         }
 
         Env ctxEnv = Env.getEnvironment();
@@ -308,9 +308,8 @@ class BaseGuicyFig implements GuicyFig {
         Collections.addAll( environs, overrides.environments() );
 
         if ( ctxEnv != Env.ALL && ! environs.contains( Env.ALL ) && ! environs.contains( ctxEnv ) ) {
-            return;
+            return false;
         }
-
 
         if ( ConfigurationManager.getConfigInstance() instanceof ConcurrentCompositeConfiguration ) {
             ConcurrentCompositeConfiguration ccc = ( ConcurrentCompositeConfiguration )
@@ -320,13 +319,8 @@ class BaseGuicyFig implements GuicyFig {
                 InternalOptionState state = methodNameOptionMap.get( annotation.method() );
                 state.setOverride( annotation );
                 ccc.setOverrideProperty( state.getKey(), annotation.override() );
-
-                if ( LOG.isInfoEnabled() ) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append( "OptionState " ).append( state.getKey() ).append( " had value " )
-                      .append( state.getValue() ).append( " overridden by " ).append( annotation.override());
-                    LOG.info( sb.toString() );
-                }
+                LOG.info( state.getKey() + " key OptionState had value {} overridden by {}",
+                        state.getValue(), annotation.override() );
             }
         }
 
@@ -336,6 +330,8 @@ class BaseGuicyFig implements GuicyFig {
         else {
             this.overrides = new OverridesImpl( overrides );
         }
+
+        return true;
     }
 
 

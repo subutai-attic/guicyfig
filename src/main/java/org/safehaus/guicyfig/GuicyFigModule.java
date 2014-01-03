@@ -261,8 +261,7 @@ public class GuicyFigModule extends AbstractModule {
                     }
 
                     if ( method.getName().equals( "setOverrides" ) ) {
-                        config.setOverrides( ( Overrides ) objects[0] );
-                        return null;
+                        return config.setOverrides( ( Overrides ) objects[0] );
                     }
 
                     if ( method.getName().equals( "override" ) ) {
@@ -280,8 +279,7 @@ public class GuicyFigModule extends AbstractModule {
                     }
 
                     if ( method.getName().equals( "setBypass" ) ) {
-                        config.setBypass( ( Bypass ) objects[0] );
-                        return null;
+                        return config.setBypass( ( Bypass ) objects[0] );
                     }
 
                     if ( method.getName().equals( "getBypass" ) ) {
@@ -315,10 +313,10 @@ public class GuicyFigModule extends AbstractModule {
                 LOG.debug( "Invoking method {} to get property with key {}", method.getName(), option.getKey() );
 
                 if ( option.isBypassed() ) {
-                    return option.getBypassedValue();
+                    return option.getBypassValue();
                 }
                 else if ( option.isOverridden() ) {
-                    return option.getOverriddenValue();
+                    return option.getOverrideValue();
                 }
                 else {
                     return option.getValue();

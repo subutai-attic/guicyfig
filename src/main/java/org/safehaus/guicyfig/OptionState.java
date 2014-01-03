@@ -10,8 +10,8 @@ public interface OptionState<V> {
     String getKey();
     V getValue();
     V getOldValue();
-    V getOverriddenValue();
-    V getBypassedValue();
+    V getOverrideValue();
+    V getBypassValue();
     Option getOverride();
     boolean isOverridden();
     Option getBypass();

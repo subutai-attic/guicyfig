@@ -103,8 +103,10 @@ public interface GuicyFig {
      * Sets the {@link Overrides} annotations, if applied to this GuicyFig.
      *
      * @param overrides the overrides to apply to this GuicyFig
+     * @return true if the environment matches and the override is applied,
+     * false otherwise
      */
-    void setOverrides( Overrides overrides );
+    boolean setOverrides( Overrides overrides );
 
 
     /**
@@ -124,11 +126,13 @@ public interface GuicyFig {
 
 
     /**
-     * Sets the {@link Bypass} annotations to be applied to this GuicyFig.
+     * Sets the {@link Bypass} annotations to be applied to this GuicyFig if the
+     * environments match.
      *
      * @param bypass to apply to this GuicyFig,
+     * @return true if bypass is applied, false if not
      */
-    void setBypass( Bypass bypass );
+    boolean setBypass( Bypass bypass );
 
 
     /**
