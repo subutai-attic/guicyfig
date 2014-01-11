@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -47,26 +48,33 @@ public class GuicyFigModule extends AbstractModule {
             new HashMap<Class<? extends GuicyFig>, BaseGuicyFig>();
 
 
-
-
+    /**
+     * Configure Guice injection for a specific GuicyFig type.
+     *
+     * @param clazz the GuicyFig type
+     */
     public GuicyFigModule( Class<? extends GuicyFig> clazz ) {
         classes = new Class[] { clazz };
     }
 
 
-    public GuicyFigModule( Class<? extends GuicyFig>... classes ) {
-        this.classes = classes;
+    /**
+     * Configure Guice injection for a collection of GuicyFig types.
+     *
+     * @param classCollection a collection of GuicyFig types
+     */
+    public GuicyFigModule( Collection<Class<? extends GuicyFig>> classCollection ) {
+        classes = classCollection.toArray( new Class[ classCollection.size()] );
     }
 
 
-    public GuicyFigModule( Set<Class<? extends GuicyFig>> classes ) {
-        this.classes = new Class[classes.size()];
-
-        int ii = 0;
-        for ( Class clazz : classes ) {
-            this.classes[ii] = clazz;
-            ii++;
-        }
+    /**
+     * Configure Guice injection for a var arg array of GuicyFig types.
+     *
+     * @param classes array of GuicyFig types
+     */
+    public GuicyFigModule( Class<? extends GuicyFig>... classes ) {
+        this.classes = classes;
     }
 
 
