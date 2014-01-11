@@ -165,7 +165,12 @@ class BaseGuicyFig implements GuicyFig {
         }
 
         Object newEffective = state.getEffectiveValue();
-        if ( ! newEffective.equals( oldEffective ) ) {
+
+        boolean fireEvent =
+                ( newEffective == null && oldEffective != null ) ||                  // fire if null-ing out non-null
+                ( newEffective != null && ! newEffective.equals( oldEffective ) );   // fire if non-null and different
+
+        if ( fireEvent ) {
             changeSupport.firePropertyChange( state.getKey(), oldEffective, newEffective );
         }
         else {
@@ -210,7 +215,12 @@ class BaseGuicyFig implements GuicyFig {
         }
 
         Object newEffective = state.getEffectiveValue();
-        if ( ! newEffective.equals( oldEffective ) ) {
+
+        boolean fireEvent =
+                ( newEffective == null && oldEffective != null ) ||                  // fire if null-ing out non-null
+                ( newEffective != null && ! newEffective.equals( oldEffective ) );   // fire if non-null and different
+
+        if ( fireEvent ) {
             changeSupport.firePropertyChange( state.getKey(), oldEffective, newEffective );
         }
         else {
