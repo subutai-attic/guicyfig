@@ -9,7 +9,7 @@
 
   <artifactId>guicyfig</artifactId>
   <groupId>org.safehaus.guicyfig</groupId>
-  <version>3.3</version>
+  <version>3.4-SNAPSHOT</version>
   <modelVersion>4.0.0</modelVersion>
   <name>GuicyFig Core</name>
 
@@ -42,7 +42,7 @@
     <developerConnection>
       scm:git:ssh://git@stash.safehaus.org:7999/gfig/main.git
     </developerConnection>
-    <tag>guicyfig-3.3</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
