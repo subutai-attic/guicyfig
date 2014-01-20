@@ -321,13 +321,19 @@ public class GuicyFigModule extends AbstractModule {
                 LOG.debug( "Invoking method {} to get property with key {}", method.getName(), option.getKey() );
 
                 if ( option.isBypassed() ) {
-                    return option.getBypassValue();
+                    Object value = option.getBypassValue();
+                    LOG.debug( "Bypassed method {} with value {}", method.getName(), value );
+                    return value;
                 }
                 else if ( option.isOverridden() ) {
-                    return option.getOverrideValue();
+                    Object value = option.getOverrideValue();
+                    LOG.debug( "Overridden method {} with value {}", method.getName(), value );
+                    return value;
                 }
                 else {
-                    return option.getValue();
+                    Object value = option.getValue();
+                    LOG.debug( "Method {} with value {}", method.getName(), value );
+                    return value;
                 }
             } }
         };

@@ -29,6 +29,7 @@ public abstract class EnvironResource implements TestRule {
      * @param environs the active environments for this resource
      */
     public EnvironResource( Env... environs ) {
+        LOG.debug( "Set to operate in environments: {}", environs );
         this.environs = new HashSet<Env>( environs.length );
         Collections.addAll( this.environs, environs );
     }
@@ -51,6 +52,7 @@ public abstract class EnvironResource implements TestRule {
      * @return true if added and was not present before, false if already present
      */
     public final boolean addEnvironment( Env env ) {
+        LOG.debug( "Adding environment {} to set of environments {}", env, environs );
         return environs.add( env );
     }
 
@@ -72,7 +74,10 @@ public abstract class EnvironResource implements TestRule {
             public void evaluate() throws Throwable {
                 Env env = Env.getEnvironment();
 
+                LOG.info( "Operating environment = {}", env );
+
                 if ( env == Env.ALL || environs.contains( Env.ALL ) || environs.contains( env ) ) {
+                    LOG.info( "Operating environment {} matched by valid environments: ", environs );
                     before();
                 }
                 else {
@@ -85,6 +90,7 @@ public abstract class EnvironResource implements TestRule {
                 }
                 finally {
                     if ( env == Env.ALL || environs.contains( Env.ALL ) || environs.contains( env ) ) {
+                        LOG.info( "Operating environment {} matched by valid environments: ", environs );
                         after();
                     }
                     else {
