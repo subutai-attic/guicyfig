@@ -402,6 +402,8 @@ public class ServiceFigTest extends AbstractTest {
         assertEquals(ConfigEnum.TWO, event.getNewValue());
 
 
+        serviceFig.override( serviceFig.getKeyByMethod( "getEnum" ), null );
+
     }
 
 

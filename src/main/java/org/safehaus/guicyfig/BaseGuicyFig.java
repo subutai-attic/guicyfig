@@ -150,7 +150,7 @@ class BaseGuicyFig implements GuicyFig {
 
 
     @Override
-    public void override( String method, String override ) {
+    public void override( final String method, final String override ) {
         if ( overrides == null ) {
             overrides = new OverridesImpl( "default" );
         }
@@ -161,6 +161,8 @@ class BaseGuicyFig implements GuicyFig {
 
         Object oldEffective = state.getEffectiveValue();
 
+
+
         // we're clearing the old override out so the old value is the override
         // and the new value is the current value
         if ( override == null ) {
@@ -169,9 +171,13 @@ class BaseGuicyFig implements GuicyFig {
             ccc.clearOverrideProperty( state.getKey() );
         }
         else {
+
+            //run through parsing the value from the old state, otherwise we get type conflicts
+            Object newValue = state.convertValue( override );
+
             Option option = overrides.addOption( method, override );
             state.setOverride( option );
-            ccc.setOverrideProperty( method, override );
+            ccc.setOverrideProperty( method, newValue );
         }
 
         Object newEffective = state.getEffectiveValue();
