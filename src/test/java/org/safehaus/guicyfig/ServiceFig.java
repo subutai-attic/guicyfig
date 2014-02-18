@@ -44,4 +44,7 @@ public interface ServiceFig extends GuicyFig {
 
     @SuppressWarnings( "UnusedDeclaration" )
     boolean getAbc();
+
+    @Default( "THREE" )
+    ConfigEnum getEnum();
 }

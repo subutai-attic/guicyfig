@@ -66,6 +66,16 @@ class BaseGuicyFig implements GuicyFig {
         else if ( method.getReturnType().equals( boolean.class ) ) {
             property = factory.getBooleanProperty( key, ( defval != null ) && Boolean.parseBoolean( defval ) );
         }
+        //Enum class, create it
+        else if (method.getReturnType().isEnum()){
+
+            Class<?> enumClass = method.getReturnType();
+
+            Object configuredInstance = EnumUtils.getEnumInstance( defval, enumClass );
+
+            property = factory.getContextualProperty( key, configuredInstance );
+        }
+
         else {
             LOG.error( "Configuration methods with return type {} are not supported. Property {} will be ignored.",
                     method.getReturnType(), key );

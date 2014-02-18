@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashCode;
 import com.netflix.config.DynamicBooleanProperty;
+import com.netflix.config.DynamicContextualProperty;
 import com.netflix.config.DynamicDoubleProperty;
 import com.netflix.config.DynamicFloatProperty;
 import com.netflix.config.DynamicIntProperty;
@@ -172,6 +173,14 @@ class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionStat
 
         if ( property instanceof DynamicDoubleProperty ) {
             return Double.parseDouble( value );
+        }
+
+        if( property instanceof DynamicContextualProperty && property.getValue() != null ){
+            Object currentValue = ((DynamicContextualProperty)property).getValue();
+
+            if(currentValue.getClass().isEnum()){
+                return EnumUtils.getEnumInstance( value, currentValue.getClass() );
+            }
         }
 
         throw new IllegalArgumentException( "Don't know how to convert the property: " + property.toString() );

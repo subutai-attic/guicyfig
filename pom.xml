@@ -32,6 +32,10 @@
       <id>akarasulu</id>
       <name>Alex Karasulu</name>
     </developer>
+    <developer>
+          <id>tnine</id>
+          <name>Todd Nine</name>
+        </developer>
   </developers>
 
   <scm>

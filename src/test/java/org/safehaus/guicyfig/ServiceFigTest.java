@@ -369,6 +369,42 @@ public class ServiceFigTest extends AbstractTest {
     }
 
 
+    @Test
+    public void enumTest() throws InterruptedException {
+        ServiceFig serviceFig = Guice.createInjector( new GuicyFigModule( ServiceFig.class ) ).getInstance( ServiceFig.class );
+
+        assertEquals(ConfigEnum.THREE, serviceFig.getEnum());
+        //test we can update the config
+
+        final List<PropertyChangeEvent> events = new ArrayList<PropertyChangeEvent>();
+        PropertyChangeListener listener = new PropertyChangeListener() {
+            @Override
+            public void propertyChange( final PropertyChangeEvent evt ) {
+                events.add( evt );
+            }
+        };
+        serviceFig.addPropertyChangeListener( listener );
+
+
+
+        serviceFig.override( serviceFig.getKeyByMethod( "getEnum" ), ConfigEnum.TWO.toString() );
+
+        Thread.sleep( 500 );
+        assertFalse( events.isEmpty() );
+        assertEquals( 1, events.size() );
+
+        PropertyChangeEvent event = events.get( 0 );
+
+
+        assertEquals(serviceFig.getKeyByMethod( "getEnum" ), event.getPropertyName());
+
+        assertEquals(ConfigEnum.THREE,event.getOldValue() );
+        assertEquals(ConfigEnum.TWO, event.getNewValue());
+
+
+    }
+
+
     @SuppressWarnings( "UnusedDeclaration" )
     public static class ServiceModule extends JukitoModule {
         @Override
