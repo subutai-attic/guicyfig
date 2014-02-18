@@ -376,7 +376,8 @@ public class ServiceFigTest extends AbstractTest {
         assertEquals(ConfigEnum.THREE, serviceFig.getEnum());
         //test we can update the config
 
-        final List<PropertyChangeEvent> events = new ArrayList<PropertyChangeEvent>();
+//   TODO: Overriding and re-configuration (probably via JMX) won't work for enum types
+     final List<PropertyChangeEvent> events = new ArrayList<PropertyChangeEvent>();
         PropertyChangeListener listener = new PropertyChangeListener() {
             @Override
             public void propertyChange( final PropertyChangeEvent evt ) {
