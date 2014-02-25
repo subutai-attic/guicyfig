@@ -12,6 +12,7 @@ import java.util.Properties;
 
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -395,6 +396,23 @@ public class ServiceFigTest extends AbstractTest {
         assertEquals( ConfigEnum.TWO, event.getNewValue() );
 
         serviceFig.override( serviceFig.getKeyByMethod( "getEnum" ), ConfigEnum.ONE.toString() );
+        Thread.sleep( 500 );
+        assertEquals( 2, events.size() );
+
+        event = events.get( 1 );
+
+        assertEquals( ConfigEnum.TWO, event.getOldValue() );
+        assertEquals( ConfigEnum.ONE, event.getNewValue() );
+
+        serviceFig.bypass( serviceFig.getKeyByMethod( "getEnum" ), ConfigEnum.THREE.toString() );
+        Thread.sleep( 500 );
+        assertEquals( 3, events.size() );
+
+        event = events.get( 2 );
+
+        assertEquals( ConfigEnum.ONE, event.getOldValue() );
+        assertEquals( ConfigEnum.THREE, event.getNewValue() );
+
     }
 
 
