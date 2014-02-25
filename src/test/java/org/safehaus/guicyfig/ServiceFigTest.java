@@ -41,9 +41,7 @@ import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertNotEquals;
 
 
-/**
- * Tests the GuicyFigModule.
- */
+/** Tests the GuicyFigModule. */
 @RunWith( JukitoRunner.class )
 public class ServiceFigTest extends AbstractTest {
     private static final Logger LOG = LoggerFactory.getLogger( ServiceFigTest.class );
@@ -52,8 +50,7 @@ public class ServiceFigTest extends AbstractTest {
 
     @Inject
     @Overrides( name = "for-testing",
-        options = { @Option( method = "getHost", override = HOSTNAME ) }
-    )
+            options = { @Option( method = "getHost", override = HOSTNAME ) } )
     ServiceFig withOverrides;
 
     @Inject
@@ -252,8 +249,8 @@ public class ServiceFigTest extends AbstractTest {
         config.addProperty( withOverrides.getKeyByMethod( "getExecutionCount" ), "12" );
         config.addProperty( withOverrides.getKeyByMethod( "getAbc" ), "true" );
 
-        ConcurrentCompositeConfiguration cmc = ( ConcurrentCompositeConfiguration )
-                ConfigurationManager.getConfigInstance();
+        ConcurrentCompositeConfiguration cmc =
+                ( ConcurrentCompositeConfiguration ) ConfigurationManager.getConfigInstance();
         cmc.addConfigurationAtFront( config, "testNotifications" );
 
         Thread.sleep( 500 );
@@ -336,10 +333,10 @@ public class ServiceFigTest extends AbstractTest {
         assertTrue( filtered.containsKey( "org.safehaus.guicyfig.ServiceFig.getPort" ) );
 
 
-        Map<String,Object> startingMap = new HashMap<String, Object>();
+        Map<String, Object> startingMap = new HashMap<String, Object>();
         startingMap.put( "foo.bar", "I will be filtered out" );
         startingMap.put( "org.safehaus.guicyfig.ServiceFig.getMaxConnections", "7" );
-        Map<String,Object> filteredMap = withOverrides.filterOptions( startingMap );
+        Map<String, Object> filteredMap = withOverrides.filterOptions( startingMap );
         assertFalse( filteredMap.containsKey( "foo.bar" ) );
         assertTrue( filteredMap.containsKey( "org.safehaus.guicyfig.ServiceFig.getMaxConnections" ) );
         assertEquals( filteredMap.get( "org.safehaus.guicyfig.ServiceFig.getMaxConnections" ), "7" );
@@ -361,8 +358,7 @@ public class ServiceFigTest extends AbstractTest {
 
     @Test
     public void useSingleClassArg() {
-        FooFig fooFig = Guice.createInjector(
-                new GuicyFigModule( FooFig.class ) ).getInstance( FooFig.class );
+        FooFig fooFig = Guice.createInjector( new GuicyFigModule( FooFig.class ) ).getInstance( FooFig.class );
         assertNotNull( fooFig );
         assertNotNull( fooFig.getFoobar() );
         assertEquals( 0, fooFig.getFoobar() );
@@ -371,13 +367,12 @@ public class ServiceFigTest extends AbstractTest {
 
     @Test
     public void enumTest() throws InterruptedException {
-        ServiceFig serviceFig = Guice.createInjector( new GuicyFigModule( ServiceFig.class ) ).getInstance( ServiceFig.class );
+        ServiceFig serviceFig =
+                Guice.createInjector( new GuicyFigModule( ServiceFig.class ) ).getInstance( ServiceFig.class );
 
-        assertEquals(ConfigEnum.THREE, serviceFig.getEnum());
-        //test we can update the config
+        assertEquals( ConfigEnum.THREE, serviceFig.getEnum() );
 
-//   TODO: Overriding and re-configuration (probably via JMX) won't work for enum types
-     final List<PropertyChangeEvent> events = new ArrayList<PropertyChangeEvent>();
+        final List<PropertyChangeEvent> events = new ArrayList<PropertyChangeEvent>();
         PropertyChangeListener listener = new PropertyChangeListener() {
             @Override
             public void propertyChange( final PropertyChangeEvent evt ) {
@@ -385,8 +380,6 @@ public class ServiceFigTest extends AbstractTest {
             }
         };
         serviceFig.addPropertyChangeListener( listener );
-
-
 
         serviceFig.override( serviceFig.getKeyByMethod( "getEnum" ), ConfigEnum.TWO.toString() );
 
@@ -396,15 +389,12 @@ public class ServiceFigTest extends AbstractTest {
 
         PropertyChangeEvent event = events.get( 0 );
 
+        assertEquals( serviceFig.getKeyByMethod( "getEnum" ), event.getPropertyName() );
 
-        assertEquals(serviceFig.getKeyByMethod( "getEnum" ), event.getPropertyName());
+        assertEquals( ConfigEnum.THREE, event.getOldValue() );
+        assertEquals( ConfigEnum.TWO, event.getNewValue() );
 
-        assertEquals(ConfigEnum.THREE,event.getOldValue() );
-        assertEquals(ConfigEnum.TWO, event.getNewValue());
-
-
-        serviceFig.override( serviceFig.getKeyByMethod( "getEnum" ), null );
-
+        serviceFig.override( serviceFig.getKeyByMethod( "getEnum" ), ConfigEnum.ONE.toString() );
     }
 
 
