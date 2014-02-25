@@ -53,6 +53,9 @@ class BaseGuicyFig implements GuicyFig {
         else if ( method.getReturnType().equals( String.class ) ) {
             property = factory.getStringProperty( key, defval );
         }
+        else if ( method.getReturnType().isEnum() ) {
+            property = factory.getStringProperty( key, defval );
+        }
         else if ( method.getReturnType().equals( long.class ) || method.getReturnType().equals( Long.class ) ) {
             property = factory.getLongProperty( key, ( defval == null ) ? 0 : Long.parseLong( defval ) );
         }
@@ -66,16 +69,6 @@ class BaseGuicyFig implements GuicyFig {
         else if ( method.getReturnType().equals( boolean.class ) ) {
             property = factory.getBooleanProperty( key, ( defval != null ) && Boolean.parseBoolean( defval ) );
         }
-        //Enum class, create it
-        else if (method.getReturnType().isEnum()){
-
-            Class<?> enumClass = method.getReturnType();
-
-            Object configuredInstance = EnumUtils.getEnumInstance( defval, enumClass );
-
-            property = factory.getContextualProperty( key, configuredInstance );
-        }
-
         else {
             LOG.error( "Configuration methods with return type {} are not supported. Property {} will be ignored.",
                     method.getReturnType(), key );
@@ -159,38 +152,25 @@ class BaseGuicyFig implements GuicyFig {
                 ConfigurationManager.getConfigInstance();
         InternalOptionState state = getOptionState( method );
 
-        Object oldEffective = state.getEffectiveValue();
-
-
-
         // we're clearing the old override out so the old value is the override
         // and the new value is the current value
         if ( override == null ) {
             overrides.removeOption( method );
             state.setOverride( null );
+
+            // triggers call on PropertyChangeRunner.run()
             ccc.clearOverrideProperty( state.getKey() );
         }
         else {
 
-            //run through parsing the value from the old state, otherwise we get type conflicts
+            // run through parsing the value from the old state, otherwise we get type conflicts
             Object newValue = state.convertValue( override );
 
             Option option = overrides.addOption( method, override );
             state.setOverride( option );
-            ccc.setOverrideProperty( method, newValue );
-        }
 
-        Object newEffective = state.getEffectiveValue();
-
-        boolean fireEvent =
-                ( newEffective == null && oldEffective != null ) ||                  // fire if null-ing out non-null
-                ( newEffective != null && ! newEffective.equals( oldEffective ) );   // fire if non-null and different
-
-        if ( fireEvent ) {
-            changeSupport.firePropertyChange( state.getKey(), oldEffective, newEffective );
-        }
-        else {
-            LOG.warn( "Not firing change notifications because the override change induces no value change." );
+            // triggers call on PropertyChangeRunner.run()
+            ccc.setOverrideProperty( state.getKey(), newValue );
         }
     }
 

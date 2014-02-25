@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashCode;
 import com.netflix.config.DynamicBooleanProperty;
-import com.netflix.config.DynamicContextualProperty;
 import com.netflix.config.DynamicDoubleProperty;
 import com.netflix.config.DynamicFloatProperty;
 import com.netflix.config.DynamicIntProperty;
@@ -30,11 +29,23 @@ class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionStat
     InternalOptionState( String key, T property, Method method ) {
         Preconditions.checkNotNull( key, "key cannot be null" );
         Preconditions.checkNotNull( property, "property cannot be null" );
+        Preconditions.checkNotNull( method, "method cannot be null" );
 
         this.key = key;
         this.property = property;
         this.method = method;
-        this.oldValue = property.getValue();
+        this.oldValue = extractValue();
+    }
+
+
+    private V extractValue() {
+        if ( method.getReturnType().isEnum() ) {
+            //noinspection unchecked
+            return ( V ) EnumUtils.getEnumInstance( ( String ) property.getValue(), method.getReturnType() );
+        }
+        else {
+            return property.getValue();
+        }
     }
 
 
@@ -45,7 +56,7 @@ class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionStat
 
     V update() {
         V val = oldValue;
-        oldValue = property.getValue();
+        oldValue = extractValue();
         return val;
     }
 
@@ -58,7 +69,7 @@ class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionStat
 
     @Override
     public V getValue() {
-        return property.getValue();
+        return extractValue();
     }
 
 
@@ -150,6 +161,10 @@ class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionStat
 
     Object convertValue( String value ) {
         if ( property instanceof DynamicStringProperty ) {
+            if ( method.getReturnType().isEnum() ) {
+                return EnumUtils.getEnumInstance( value, method.getReturnType() );
+            }
+
             return value;
         }
 
@@ -173,14 +188,6 @@ class InternalOptionState<V, T extends PropertyWrapper<V>> implements OptionStat
 
         if ( property instanceof DynamicDoubleProperty ) {
             return Double.parseDouble( value );
-        }
-
-        if( property instanceof DynamicContextualProperty && property.getValue() != null ){
-            Object currentValue = ((DynamicContextualProperty)property).getValue();
-
-            if(currentValue.getClass().isEnum()){
-                return EnumUtils.getEnumInstance( value, currentValue.getClass() );
-            }
         }
 
         throw new IllegalArgumentException( "Don't know how to convert the property: " + property.toString() );
