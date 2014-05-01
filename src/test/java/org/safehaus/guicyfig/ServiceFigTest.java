@@ -12,11 +12,8 @@ import java.util.Properties;
 
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.apache.commons.configuration.AbstractConfiguration;
 
@@ -45,7 +42,6 @@ import static org.junit.Assert.assertNotEquals;
 /** Tests the GuicyFigModule. */
 @RunWith( JukitoRunner.class )
 public class ServiceFigTest extends AbstractTest {
-    private static final Logger LOG = LoggerFactory.getLogger( ServiceFigTest.class );
     private static final String HOSTNAME = "bullshlaka";
 
 
