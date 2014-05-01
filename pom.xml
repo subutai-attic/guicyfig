@@ -33,10 +33,26 @@
       <name>Alex Karasulu</name>
     </developer>
     <developer>
-          <id>tnine</id>
-          <name>Todd Nine</name>
-        </developer>
-  </developers>
+      <id>tnine</id>
+      <name>Todd Nine</name>
+    </developer>
+    <developer>
+      <id>yigits</id>
+      <name>Yigit Sapli</name>
+    </developer>
+    <developer>
+      <id>aasanaliev</id>
+      <name>Askhat Asanaliev</name>
+    </developer>
+    <developer>
+      <id>bicak.cs</id>
+      <name>Furkan Bicak</name>
+    </developer>
+    <developer>
+      <id>salihkardan</id>
+      <name>Salih Kardan</name>
+    </developer>
+</developers>
 
   <scm>
     <url>http://stash.safehaus.org/projects/GFIG/repos/main/browse</url>
