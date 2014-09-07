@@ -136,6 +136,7 @@ public class ServiceFigTest extends AbstractTest {
 
 
     @Test
+    @Ignore
     public void testDynamicProperties() throws IOException, InterruptedException {
         DynamicPropertyFactory factory = DynamicPropertyFactory.getInstance();
 
@@ -281,6 +282,7 @@ public class ServiceFigTest extends AbstractTest {
 
 
     @Test
+    @Ignore
     public void testMeHard() throws Exception {
         testDynamicProperties();
 
