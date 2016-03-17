@@ -9,7 +9,7 @@
 
   <artifactId>guicyfig</artifactId>
   <groupId>io.subutai.guicyfig</groupId>
-  <version>3.4.2-SNAPSHOT</version>
+  <version>4.0.1-SNAPSHOT</version>
   <modelVersion>4.0.0</modelVersion>
   <name>GuicyFig Core</name>
 
@@ -57,11 +57,12 @@
   <scm>
     <url>https://github.com/subutai-io/guicyfig</url>
     <connection>
-      scm:git:git://github.com/akarasulu/guicyfig.git
+      scm:git:git://github.com/subutai-io/guicyfig.git
     </connection>
     <developerConnection>
-      scm:git:git@github.com:akarasulu/guicyfig.git
+      scm:git:git@github.com:subutai-io/guicyfig.git
     </developerConnection>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
@@ -206,8 +207,10 @@
               <tagNameFormat>v@${pom.version}</tagNameFormat>
               <arguments>-Psubutai.release -Psonatype-oss-release</arguments>
               <autoVersionSubmodules>true</autoVersionSubmodules>
+              <!--
               <useReleaseProfile>false</useReleaseProfile>
               <releaseProfiles>release</releaseProfiles>
+              -->
               <goals>deploy</goals>
             </configuration>
             <dependencies>
