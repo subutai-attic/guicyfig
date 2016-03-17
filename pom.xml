@@ -206,8 +206,10 @@
               <tagNameFormat>v@${pom.version}</tagNameFormat>
               <arguments>-Psubutai.release -Psonatype-oss-release</arguments>
               <autoVersionSubmodules>true</autoVersionSubmodules>
+              <!--
               <useReleaseProfile>false</useReleaseProfile>
               <releaseProfiles>release</releaseProfiles>
+              -->
               <goals>deploy</goals>
             </configuration>
             <dependencies>
