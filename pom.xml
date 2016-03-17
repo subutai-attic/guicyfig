@@ -9,7 +9,7 @@
 
   <artifactId>guicyfig</artifactId>
   <groupId>io.subutai.guicyfig</groupId>
-  <version>3.4.2-SNAPSHOT</version>
+  <version>4.0.1-SNAPSHOT</version>
   <modelVersion>4.0.0</modelVersion>
   <name>GuicyFig Core</name>
 
@@ -62,6 +62,7 @@
     <developerConnection>
       scm:git:git@github.com:subutai-io/guicyfig.git
     </developerConnection>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
