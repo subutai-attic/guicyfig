@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>guicyfig</artifactId>
-  <groupId>org.safehaus.guicyfig</groupId>
+  <groupId>io.subutai.guicyfig</groupId>
   <version>3.4.2-SNAPSHOT</version>
   <modelVersion>4.0.0</modelVersion>
   <name>GuicyFig Core</name>
@@ -52,17 +52,16 @@
       <id>salihkardan</id>
       <name>Salih Kardan</name>
     </developer>
-</developers>
+  </developers>
 
   <scm>
-    <url>http://stash.safehaus.org/projects/GFIG/repos/main/browse</url>
+    <url>https://github.com/subutai-io/guicyfig</url>
     <connection>
-      scm:git:ssh://git@stash.safehaus.org:7999/gfig/main.git
+      scm:git:git://github.com/subutai-io/guicyfig.git
     </connection>
     <developerConnection>
-      scm:git:ssh://git@stash.safehaus.org:7999/gfig/main.git
+      scm:git:git@github.com:subutai-io/guicyfig.git
     </developerConnection>
-    <tag>HEAD</tag>
   </scm>
 
   <properties>
@@ -140,7 +139,7 @@
             <pushChanges>true</pushChanges>
             <mavenExecutorId>forked-path</mavenExecutorId>
             <useReleaseProfile>false</useReleaseProfile>
-            <arguments>-Psafehaus.release -Psonatype-oss-release</arguments>
+            <arguments>-Psubutai.release -Psonatype-oss-release</arguments>
           </configuration>
           <dependencies>
             <dependency>
@@ -164,7 +163,7 @@
       <id>release-sign-artifacts</id>
       <activation>
         <property>
-          <name>safehausRelease</name>
+          <name>subutaiRelease</name>
           <value>true</value>
         </property>
       </activation>
