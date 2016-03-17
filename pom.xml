@@ -57,10 +57,10 @@
   <scm>
     <url>https://github.com/subutai-io/guicyfig</url>
     <connection>
-      scm:git:git://github.com/akarasulu/guicyfig.git
+      scm:git:git://github.com/subutai-io/guicyfig.git
     </connection>
     <developerConnection>
-      scm:git:git@github.com:akarasulu/guicyfig.git
+      scm:git:git@github.com:subutai-io/guicyfig.git
     </developerConnection>
   </scm>
 
